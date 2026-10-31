@@ -2,172 +2,212 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Band broadening and the Van Deemter equation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1820" media="(prefers-color-scheme: dark)">
+<title>Van Deemter explorer: band broadening in HPLC and GC</title>
 <style>
 :root{--ink:#1f2d3a;--navy:#163e63;--steel:#326b9e;--muted:#566676;--rule:#cfdbe6;--panel:#f1f5f9;--bg:#ffffff;--grid:#e6edf3;
---tA:#22806b;--tB:#6a4fb3;--tCS:#b8601a;--tCM:#1f6fb0;--mob:#0b8fb3;--sta:#d9822b;--part:#d3dae2;--partEdge:#a9b6c4;--film:rgba(217,130,43,.30);--support:#c9d1da;color-scheme:light}
+--tA:#22806b;--tB:#6a4fb3;--tCS:#b8601a;--tCM:#1f6fb0;--mob:#0b8fb3;--sta:#d9822b;--part:#d3dae2;--partEdge:#a9b6c4;--film:rgba(217,130,43,.30);--support:#c9d1da;
+--good:#2f7d4f;--warn:#9a5f12;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--ink:#e3eaf1;--navy:#a9cdf0;--steel:#7fb0dc;--muted:#9fb0c0;--rule:#34475a;--panel:#17232f;--bg:#0f1820;--grid:#1f2e3b;
---tA:#5cc4a8;--tB:#ad98ee;--tCS:#eba45f;--tCM:#7fb6ee;--mob:#4fd1f0;--sta:#f0a85a;--part:#3b4b5c;--partEdge:#5b6e82;--film:rgba(240,168,90,.26);--support:#2a3947;color-scheme:dark}}
+--tA:#5cc4a8;--tB:#ad98ee;--tCS:#eba45f;--tCM:#7fb6ee;--mob:#4fd1f0;--sta:#f0a85a;--part:#3b4b5c;--partEdge:#5b6e82;--film:rgba(240,168,90,.26);--support:#2a3947;
+--good:#74cf98;--warn:#e7b066;color-scheme:dark}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Arial,Helvetica,sans-serif}
-main{max-width:1180px;margin:0 auto;padding:22px 18px 40px}
-h1{font-size:1.6rem;color:var(--navy);margin:0 0 6px}
-h2{font-size:1.15rem;color:var(--navy);margin:34px 0 6px;padding-top:16px;border-top:2px solid var(--rule)}
-.lede{margin:0 0 10px;max-width:78ch}
-.eq{font-size:1.25rem;margin:10px 0 2px;color:var(--navy);font-family:"Times New Roman",Times,serif}
-.eqnum{margin:0 0 12px;color:var(--muted);font-variant-numeric:tabular-nums;font-size:.95rem}
-.eqnum b{color:var(--ink)}
-.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:10px 0}
-.group{display:flex;flex-wrap:wrap;gap:6px}
-button{font:inherit;font-size:.9rem;padding:5px 11px;border:1px solid var(--steel);border-radius:4px;background:transparent;color:var(--navy);cursor:pointer}
-button:hover{background:var(--panel)}
-button[aria-pressed=true],button[aria-selected=true]{background:var(--navy);border-color:var(--navy);color:var(--bg)}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Arial,Helvetica,sans-serif;overflow:hidden;-webkit-text-size-adjust:100%}
+button,select,input{font:inherit}
 :focus-visible{outline:2px solid var(--steel);outline-offset:2px}
-.types button{font-size:1rem;padding:7px 14px}
-.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:22px;align-items:start;margin-top:8px}
-@media (max-width:880px){.hero{grid-template-columns:minmax(0,1fr)}}
-.view{position:relative;border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,var(--panel),var(--bg) 75%)}
-#c3{display:block;width:100%;height:400px;touch-action:pan-y;cursor:grab}
-@media (max-width:600px){#c3{height:300px}}
-#c3:active{cursor:grabbing}
-.ovl{position:absolute;font-size:.8rem;color:var(--muted);pointer-events:none}
-.ovl.tl{left:10px;top:8px;max-width:70%}
-.ovl.br{right:8px;bottom:8px;pointer-events:auto;display:flex;gap:6px}
-.ovl.br button{background:var(--bg);font-size:.82rem;padding:3px 9px}
-.legend3{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.84rem;color:var(--muted);margin:6px 2px 0}
-.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
-.fallback{padding:40px 20px;text-align:center;color:var(--muted)}
-figcaption{font-size:.86rem;color:var(--muted);margin:6px 2px 0}
-.bigH{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;margin:0 0 6px}
-.bigH .h{font-size:1.9rem;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
-.bigH .s{font-size:.9rem;color:var(--muted)}
-.bar{display:flex;height:16px;border-radius:3px;overflow:hidden;background:var(--grid);margin:4px 0}
-.bar span{display:block;height:100%;transition:width .15s}
-.barlab{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.barlab i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-#plot{display:block;width:100%;height:auto;margin-top:6px}
-.ax{stroke:var(--muted);stroke-width:1}
-.gl{stroke:var(--grid);stroke-width:1}
-.tk{fill:var(--muted);font-size:12px}
-.axt{fill:var(--ink);font-size:13px}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+header{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--rule);flex:0 0 auto}
+@media (max-width:480px){header h1 .long{display:none}}
+header h1{font-size:1.02rem;margin:0;color:var(--navy);flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header select{border:1px solid var(--steel);border-radius:6px;background:var(--bg);color:var(--navy);padding:5px 6px;max-width:52vw;font-size:.92rem}
+.btn{border:1px solid var(--steel);border-radius:6px;background:transparent;color:var(--navy);padding:5px 10px;cursor:pointer;font-size:.88rem}
+.btn:hover{background:var(--panel)}
+.main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.left{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.right{flex:0 0 auto;height:44%;min-height:200px;display:flex;flex-direction:column;border-top:1px solid var(--rule);background:var(--bg)}
+@media (min-width:900px),(orientation:landscape) and (max-height:600px){
+  .main{flex-direction:row}
+  .right{height:auto;width:min(390px,42%);border-top:0;border-left:1px solid var(--rule)}
+}
+/* live readout */
+.live{padding:6px 12px 4px;flex:0 0 auto}
+.live .l1{display:flex;align-items:baseline;gap:4px 12px;flex-wrap:wrap}
+.live .h{font-size:1.45rem;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+.live .sub{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.live .st{font-size:.82rem;font-weight:700;margin-left:auto}
+.bar{display:flex;height:9px;border-radius:3px;overflow:hidden;background:var(--grid);margin:4px 0 2px}
+.bar span{display:block;height:100%}
+.barlab{display:flex;flex-wrap:wrap;gap:0 10px;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.barlab i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px;vertical-align:0}
+/* segmented tabs */
+.seg{display:flex;gap:4px;padding:4px 10px;flex:0 0 auto;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1 0 auto;border:1px solid var(--rule);background:var(--bg);color:var(--navy);border-radius:7px;padding:5px 9px;font-size:.86rem;cursor:pointer;white-space:nowrap}
+.seg button[aria-selected=true],.seg button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:var(--bg)}
+.seg button .v{font-size:.72rem;opacity:.85;display:block;font-variant-numeric:tabular-nums}
+/* stage */
+.stage{position:relative;flex:1 1 auto;min-height:170px;margin:0 10px 8px;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--bg)}
+.view{position:absolute;inset:0;display:none}
+.view.on{display:flex;flex-direction:column}
+#plot{width:100%;height:100%;display:block;touch-action:none;cursor:ew-resize}
+.ax{stroke:var(--muted);stroke-width:1}.gl{stroke:var(--grid);stroke-width:1}.tk{fill:var(--muted);font-size:11px}.axt{fill:var(--ink);font-size:12px}
 .halo{paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
-.plotopts{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:.85rem;color:var(--muted);margin-top:2px}
-.plotopts button{font-size:.8rem;padding:2px 8px}
-.summary{border-left:3px solid var(--steel);background:var(--panel);padding:10px 14px;margin:16px 0 4px;max-width:96ch}
-.params{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:14px;margin-top:10px}
-fieldset{border:1px solid var(--rule);border-radius:8px;padding:6px 14px 10px;margin:0;min-width:0}
-legend{font-weight:700;color:var(--navy);padding:0 6px;font-size:.98rem}
-.term{font-weight:700;font-variant-numeric:tabular-nums}
-.help{font-size:.84rem;color:var(--muted);margin:2px 0 6px}
-.row{margin:8px 0 2px}
-.row .top{display:flex;justify-content:space-between;gap:10px;font-size:.9rem}
-.row output{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
-.row input[type=range]{width:100%;accent-color:var(--steel);margin:2px 0 0}
-.row .ends{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);margin-top:-2px}
+.ghint{position:absolute;left:56px;top:8px;font-size:.72rem;color:var(--muted);pointer-events:none;transition:opacity .3s}
+.ghint.gone{opacity:0}
+@media (max-width:480px){.ghint{top:24px}}
+@media (max-height:700px){.right{height:40%}}
+.leg{position:absolute;right:8px;top:6px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:0 8px;font-size:.74rem;max-width:70%;pointer-events:none}
+.leg span{white-space:nowrap}
+.v3{background:radial-gradient(ellipse at 50% 40%,var(--panel),var(--bg) 75%)}
+#c3{width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.ovl{position:absolute;font-size:.74rem;color:var(--muted);pointer-events:none}
+.ovl.tl{left:8px;top:6px;right:8px}
+.ovl.br{right:6px;bottom:6px;pointer-events:auto;display:flex;gap:4px}
+.ovl.br .btn{background:var(--bg);padding:3px 8px;font-size:.8rem}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.mtabs{display:flex;gap:4px;padding:5px 6px;flex:0 0 auto;overflow-x:auto;scrollbar-width:none;align-items:center}
+.mtabs::-webkit-scrollbar{display:none}
+.mname{font-size:.78rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mtabs button{border:1px solid var(--rule);background:var(--bg);color:var(--navy);border-radius:6px;padding:3px 10px;min-width:38px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+.mtabs button[aria-selected=true]{background:var(--navy);border-color:var(--navy);color:var(--bg)}
+.mtabs .info{margin-left:auto;flex:0 0 auto}
+.mwrap{position:relative;flex:1 1 auto;min-height:0}
+#cm{width:100%;height:100%;display:block}
+.cap{position:absolute;left:6px;right:6px;bottom:6px;max-height:70%;overflow:auto;background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;font-size:.84rem;display:none}
+.cap.on{display:block}
+.cap b{color:var(--navy)}
+.nums{overflow:auto;padding:8px 12px}
+.nums table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.88rem}
+.nums td{padding:5px 4px;border-bottom:1px solid var(--rule);vertical-align:top}
+.nums td:last-child{text-align:right;font-weight:700;white-space:nowrap}
+.nums h3{font-size:.9rem;margin:10px 0 2px;color:var(--navy)}
+.nums p{margin:6px 0;font-size:.86rem}
+/* parameter panel */
+.pbody{flex:1 1 auto;min-height:0;overflow:auto;padding:2px 12px 10px;-webkit-overflow-scrolling:touch}
+.row{margin:8px 0 4px}
+.row .top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.88rem}
+.row .val{border:1px dashed var(--steel);background:transparent;color:var(--ink);border-radius:5px;padding:1px 7px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:text;font-size:.88rem}
+.row input[type=number]{width:8.5em;padding:2px 6px;border:1px solid var(--steel);border-radius:5px;background:var(--bg);color:var(--ink);font-size:16px}
+.row input[type=range]{width:100%;accent-color:var(--steel);margin:4px 0 0;height:26px}
 .row.off{opacity:.45}
-.seg{margin:8px 0}
-.seg .lab{font-size:.9rem;display:block;margin-bottom:4px}
-.info{font-size:.84rem;color:var(--muted);background:var(--panel);border-radius:5px;padding:6px 9px;margin:8px 0 2px}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.micro{border:1px solid var(--rule);border-radius:8px;overflow:hidden}
-#cm{display:block;width:100%;height:300px}
-.mcap{margin:8px 2px 0;max-width:96ch}
-.mcap b{color:var(--navy)}
-.mval{font-size:.9rem;color:var(--muted);margin:4px 2px 0;font-variant-numeric:tabular-nums}
-.readout{display:flex;flex-wrap:wrap;margin:10px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
-.readout div{padding:8px 18px 8px 0;margin-right:18px;border-right:1px solid var(--rule)}
-.readout div:last-child{border-right:0;margin-right:0}
-.readout span{display:block;font-size:.8rem;color:var(--muted)}
-.readout b{font-size:1.05rem;font-variant-numeric:tabular-nums}
-details{margin:18px 0 0}
-summary{cursor:pointer;color:var(--navy);font-weight:700}
-.eqs p{margin:6px 0;max-width:90ch}
-.note{font-size:.88rem;color:var(--muted);max-width:90ch}
+.hint{font-size:.8rem;color:var(--muted);margin:6px 0 4px}
+.info{font-size:.8rem;color:var(--muted);background:var(--panel);border-radius:6px;padding:6px 8px;margin:8px 0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.chips button{border:1px solid var(--steel);border-radius:6px;background:transparent;color:var(--navy);padding:4px 10px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:var(--bg)}
+.reset{margin-top:10px}
+.seg .fold{flex:0 0 auto;min-width:40px;font-size:1rem}
+.right.collapsed{height:auto;min-height:0}
+.right.collapsed .pbody{display:none}
+.right.all #ptabs{display:none}
+.ghead{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 0;padding-top:8px;border-top:1px solid var(--rule)}
+.ghead:first-child{border-top:0;margin-top:4px}
+.ghead h2{font-size:.98rem;margin:0;color:var(--navy)}
+.ghead span{font-size:.85rem;font-weight:700;font-variant-numeric:tabular-nums}
+/* guide sheet */
+dialog{border:1px solid var(--rule);border-radius:12px;padding:0;max-width:640px;width:calc(100% - 20px);max-height:calc(100dvh - 40px);background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(10,20,30,.45)}
+.dhead{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--bg)}
+.dhead h2{margin:0;font-size:1.05rem;color:var(--navy)}
+.dbody{padding:4px 16px 16px;font-size:.92rem}
+.dbody h3{font-size:.98rem;color:var(--navy);margin:14px 0 4px}
+.dbody p{margin:6px 0}
+.dbody .note{color:var(--muted);font-size:.85rem}
+.fallback{margin:auto;padding:20px;text-align:center;color:var(--muted)}
 </style>
 </head>
 <body>
-<main>
-<h1>Band broadening and the Van Deemter equation</h1>
-<p class="lede">Every band of molecules spreads out as it travels through a column, and the more it spreads, the fewer peaks the column can separate. The plate height H measures that spreading: the smaller H, the sharper the peaks. The Van Deemter equation splits H into three causes, and each one depends on things you can change about the column and the run.</p>
-<p class="eq">H = A + B/u + (C<sub>S</sub> + C<sub>M</sub>)·u</p>
-<p class="eqnum" id="eqnum"></p>
-
-<div class="controls types" role="group" aria-label="Column type">
-  <button type="button" data-type="hplc" aria-pressed="true">HPLC, packed column</button>
-  <button type="button" data-type="gcp" aria-pressed="false">GC, packed column</button>
-  <button type="button" data-type="gcc" aria-pressed="false">GC, capillary column</button>
-</div>
-
-<section class="hero">
-  <figure style="margin:0">
-    <div class="view">
-      <canvas id="c3" tabindex="0" aria-label="3D view of a magnified section of the column with the analyte band moving through it. Drag or use the arrow keys to rotate."></canvas>
-      <div class="ovl tl" id="ovlTitle"></div>
-      <div class="ovl br">
-        <button type="button" id="zin" aria-label="Zoom in">+</button>
-        <button type="button" id="zout" aria-label="Zoom out">−</button>
-        <button type="button" id="vreset">Reset view</button>
-        <button type="button" id="play" aria-pressed="false">Pause</button>
+<div class="app">
+  <header>
+    <h1>Van Deemter<span class="long"> explorer</span></h1>
+    <select id="type" aria-label="Column type">
+      <option value="hplc">HPLC, packed</option>
+      <option value="gcp">GC, packed</option>
+      <option value="gcc">GC, capillary</option>
+    </select>
+    <button type="button" class="btn" id="guideBtn">Guide</button>
+  </header>
+  <div class="main">
+    <section class="left" aria-label="Results">
+      <div class="live" aria-live="polite">
+        <div class="l1"><span class="h" id="Hbig"></span><span class="sub" id="Hsub"></span><span class="st" id="Hst"></span></div>
+        <div class="bar" id="bar" aria-hidden="true"></div>
+        <div class="barlab" id="barlab"></div>
       </div>
-    </div>
-    <div class="legend3" id="ovlLegend"></div>
-    <figcaption id="cap3"></figcaption>
-  </figure>
-  <div>
-    <div class="bigH"><span class="h" id="Hbig"></span><span class="s" id="Hsub"></span></div>
-    <div class="bar" id="bar" aria-hidden="true"></div>
-    <div class="barlab" id="barlab"></div>
-    <svg id="plot" viewBox="0 0 540 350" role="img" aria-label="Van Deemter plot of plate height against linear velocity"></svg>
-    <div class="plotopts">
-      <span><i class="dot" style="background:var(--navy);border-radius:2px;height:4px;width:16px"></i>H</span>
-      <span style="color:var(--tA)">A</span><span style="color:var(--tB)">B/u</span><span style="color:var(--tCS)">C<sub>S</sub>·u</span><span style="color:var(--tCM)">C<sub>M</sub>·u</span>
-      <span style="margin-left:auto">y-axis:</span>
-      <button type="button" id="yfix" aria-pressed="true">Fixed</button>
-      <button type="button" id="yfit" aria-pressed="false">Fit to curve</button>
-    </div>
+      <div class="seg" role="tablist" aria-label="View">
+        <button type="button" role="tab" data-view="graph" aria-selected="true">Graph</button>
+        <button type="button" role="tab" data-view="col" aria-selected="false">3D column</button>
+        <button type="button" role="tab" data-view="zoom" aria-selected="false">Close-up</button>
+        <button type="button" role="tab" data-view="nums" aria-selected="false">Numbers</button>
+      </div>
+      <div class="stage" id="stage">
+        <div class="view on" id="v-graph" role="tabpanel" aria-label="Van Deemter graph">
+          <svg id="plot" role="img" aria-label="Van Deemter plot of plate height against linear velocity. Drag to change the velocity."></svg>
+          <div class="leg" id="leg"></div>
+          <div class="ghint">Drag on the graph to change u</div>
+        </div>
+        <div class="view v3" id="v-col" role="tabpanel" aria-label="3D column">
+          <canvas id="c3" tabindex="0" aria-label="3D view of a magnified section of the column with the analyte band moving through it. Drag or use the arrow keys to rotate."></canvas>
+          <div class="ovl tl" id="ovl3"></div>
+          <div class="ovl br">
+            <button type="button" class="btn" id="zin" aria-label="Zoom in">+</button>
+            <button type="button" class="btn" id="zout" aria-label="Zoom out">−</button>
+            <button type="button" class="btn" id="vreset">Reset</button>
+            <button type="button" class="btn playbtn" aria-pressed="false">Pause</button>
+          </div>
+        </div>
+        <div class="view" id="v-zoom" role="tabpanel" aria-label="Close-up of each term">
+          <div class="mtabs" role="tablist" aria-label="Term">
+            <button type="button" role="tab" data-m="A" aria-selected="true" title="Multiple paths">A</button>
+            <button type="button" role="tab" data-m="B" aria-selected="false" title="Longitudinal diffusion">B</button>
+            <button type="button" role="tab" data-m="CS" aria-selected="false" title="Stationary phase mass transfer">C<sub>S</sub></button>
+            <button type="button" role="tab" data-m="CM" aria-selected="false" title="Mobile phase mass transfer">C<sub>M</sub></button>
+            <span class="mname" id="mname"></span><button type="button" class="info btn" id="capBtn" aria-expanded="false">Explain</button>
+          </div>
+          <div class="mwrap"><canvas id="cm" role="img" aria-label="Animated close-up of the selected band broadening process"></canvas><div class="cap" id="cap"></div></div>
+        </div>
+        <div class="view nums" id="v-nums" role="tabpanel" aria-label="All numbers"></div>
+      </div>
+    </section>
+    <section class="right" aria-label="Parameters">
+      <div class="seg" role="tablist" aria-label="Parameter group" id="ptabs">
+        <button type="button" role="tab" data-p="flow" aria-selected="true">Flow<span class="v" id="pv-flow"></span></button>
+        <button type="button" role="tab" data-p="A" aria-selected="false">A<span class="v" id="pv-A"></span></button>
+        <button type="button" role="tab" data-p="B" aria-selected="false">B<span class="v" id="pv-B"></span></button>
+        <button type="button" role="tab" data-p="C" aria-selected="false">C<span class="v" id="pv-C"></span></button>
+        <button type="button" class="fold" id="fold" aria-expanded="true" aria-label="Hide the controls to enlarge the view">▾</button>
+      </div>
+      <div class="pbody" id="pbody" role="tabpanel"></div>
+    </section>
   </div>
-</section>
-<p class="summary" id="sum" aria-live="polite"></p>
-
-<h2>Change the column and the run</h2>
-<p class="help" style="font-size:.92rem">Every slider changes the equation, the graph, the 3D column, and the zoomed views below at the same time.</p>
-<div class="params" id="params"></div>
-
-<h2>Zoom in on each term</h2>
-<p class="help" style="font-size:.92rem">Each view magnifies one cause of band broadening. They all respond to the sliders above.</p>
-<div class="tabs" role="tablist" aria-label="Band broadening term">
-  <button type="button" role="tab" data-m="A" aria-selected="true">A · Multiple paths</button>
-  <button type="button" role="tab" data-m="B" aria-selected="false">B · Longitudinal diffusion</button>
-  <button type="button" role="tab" data-m="CS" aria-selected="false">C<sub>S</sub> · Stationary phase mass transfer</button>
-  <button type="button" role="tab" data-m="CM" aria-selected="false">C<sub>M</sub> · Mobile phase mass transfer</button>
-</div>
-<div class="micro"><canvas id="cm" role="img" aria-label="Animated close-up of the selected band broadening process"></canvas></div>
-<p class="mval" id="mval"></p>
-<p class="mcap" id="mcap"></p>
-
-<h2>What this means for your separation</h2>
-<div class="readout" aria-live="polite">
-  <div><span>Plates in this column, N = L/H</span><b id="rN"></b></div>
-  <div><span>Best possible N, at u<sub>opt</sub></span><b id="rNopt"></b></div>
-  <div><span>Optimum velocity, u<sub>opt</sub></span><b id="rUopt"></b></div>
-  <div><span>Lowest H, H<sub>min</sub></span><b id="rHmin"></b></div>
-  <div><span>Retention time, t<sub>R</sub></span><b id="rTR"></b></div>
-  <div><span>Peak width at the detector, 4σ</span><b id="rW"></b></div>
-  <div><span>Analyte diffusion in the mobile phase, D<sub>M</sub></span><b id="rDM"></b></div>
 </div>
 
-<details class="eqs">
-  <summary>Equations and assumptions used on this page</summary>
-  <p><b>A = 2λd<sub>p</sub></b> for packed columns, where d<sub>p</sub> is the particle diameter and λ describes how irregular the packing is. Open tubular (capillary) columns have no particles, so A = 0.</p>
-  <p><b>B = 2γD<sub>M</sub></b>, where D<sub>M</sub> is the analyte’s diffusion coefficient in the mobile phase and γ (below 1 in a packed bed) accounts for particles blocking diffusion. In an open tube γ = 1.</p>
-  <p><b>C<sub>S</sub> = (2/3)·k/(1+k)²·d<sub>f</sub>²/D<sub>S</sub></b>, where d<sub>f</sub> is the stationary phase thickness and D<sub>S</sub> is the analyte’s diffusion coefficient in it.</p>
-  <p><b>C<sub>M</sub> = f(k)·r²/D<sub>M</sub></b> for an open tube of radius r (Golay), with f(k) = (1+6k+11k²)/(24(1+k)²). For packed beds we use C<sub>M</sub> = ω·d<sub>p</sub>²/D<sub>M</sub> with ω = f(k)/4, a typical value.</p>
-  <p><b>D<sub>M</sub> in gases</b> follows the Fuller equation: it rises with temperature (T<sup>1.75</sup>), falls with pressure, and is larger for light carrier gases and small analytes. <b>D<sub>M</sub> in liquids</b> follows the Wilke–Chang equation: it rises with temperature, falls with solvent viscosity, and is smaller for large analytes.</p>
-  <p>The minimum of the curve is at u<sub>opt</sub> = √(B/C), where H<sub>min</sub> = A + 2√(BC). A column of length L has N = L/H plates, and a peak leaves it with a width of 4σ = 4t<sub>R</sub>/√N.</p>
-  <p class="note">The values are typical textbook magnitudes, chosen to show realistic trends. In a real column, temperature also changes k; here k has its own slider so you can see each effect separately. The 3D view and the zoomed views are magnified and not drawn to scale; the film thickness in particular is exaggerated so you can see it.</p>
-</details>
-</main>
+<dialog id="guide" aria-labelledby="gTitle">
+  <div class="dhead"><h2 id="gTitle">Guide</h2><button type="button" class="btn" id="guideClose">Close</button></div>
+  <div class="dbody">
+    <h3>What this tool shows</h3>
+    <p>Every band of molecules spreads out as it moves through a column, and the more it spreads, the fewer compounds the column can separate. The plate height H measures that spreading: smaller H means sharper peaks. The Van Deemter equation splits H into three causes:</p>
+    <p style="font-family:'Times New Roman',serif;font-size:1.1rem;color:var(--navy)">H = A + B/u + (C<sub>S</sub> + C<sub>M</sub>)·u</p>
+    <h3>How to use it</h3>
+    <p>Pick a column type at the top. Change parameters in the panel (Flow, A, B, C). Tap any dashed value to type an exact number, which is handy for practice problems. H and the bar of contributions update instantly. Switch views to see the graph, a 3D column, close-ups of each term, or every number and coefficient. On the graph, drag sideways to change the velocity.</p>
+    <h3>A · Multiple paths (eddy diffusion)</h3>
+    <p>In a packed column, molecules weave around particles. Some find nearly straight routes, others take long detours, so they arrive at different times. Bigger particles (d<sub>p</sub>) and uneven packing (λ) make paths more varied. Flow speed doesn’t change this, so A is a flat line. Open tubular (capillary) columns have no particles: A = 0.</p>
+    <h3>B · Longitudinal diffusion</h3>
+    <p>Molecules wander forward and backward along the column the whole time they are in it. Slow flow means more time to wander, so this term is B/u. Faster diffusion (larger D<sub>M</sub>: light carrier gas, small analyte, high temperature, low pressure) makes B larger. Diffusion in liquids is about 10,000 times slower than in gases, so B matters little in HPLC except at very low flow.</p>
+    <h3>C<sub>S</sub> · Mass transfer in the stationary phase</h3>
+    <p>Molecules that dissolve into the stationary phase stop moving until they diffuse back out, while the others are carried ahead. A thicker film (d<sub>f</sub>) or slower diffusion in it (D<sub>S</sub>) keeps them longer, and faster flow carries the others farther meanwhile, so the term is C<sub>S</sub>·u. In HPLC the bonded phase is only nanometers thick, so C<sub>S</sub> is usually tiny.</p>
+    <h3>C<sub>M</sub> · Mass transfer in the mobile phase</h3>
+    <p>Flow is fastest in the middle of a channel and nearly zero at the walls. Molecules leave a fast or slow stream only by diffusing sideways. Wider channels (bigger particles, or a wider capillary) and slower diffusion stretch the band more, and faster flow makes it worse: C<sub>M</sub>·u. This is why small particles and narrow capillaries give sharp peaks.</p>
+    <h3>Equations used</h3>
+    <p>A = 2λd<sub>p</sub> (packed), A = 0 (open tube). B = 2γD<sub>M</sub>, with γ = 1 in an open tube. C<sub>S</sub> = (2/3)·k/(1+k)²·d<sub>f</sub>²/D<sub>S</sub>. C<sub>M</sub> = f(k)·r²/D<sub>M</sub> for an open tube of radius r (Golay), with f(k) = (1+6k+11k²)/(24(1+k)²); for packed beds C<sub>M</sub> = ω·d<sub>p</sub>²/D<sub>M</sub> with ω = f(k)/4.</p>
+    <p>D<sub>M</sub> in gases follows the Fuller equation (rises as T<sup>1.75</sup>, falls with pressure, larger for light carrier gases and small analytes). D<sub>M</sub> in liquids follows the Wilke–Chang equation (rises with temperature, falls with solvent viscosity, smaller for large analytes).</p>
+    <p>u<sub>opt</sub> = √(B/C) and H<sub>min</sub> = A + 2√(BC). A column of length L has N = L/H plates, t<sub>R</sub> = (L/u)(1 + k), and a peak leaves with a width of 4σ = 4t<sub>R</sub>/√N.</p>
+    <p class="note">Values are typical textbook magnitudes chosen to show realistic trends. In a real column, temperature also changes k; here k has its own slider so you can see each effect separately. The 3D view and close-ups are magnified and not to scale; the film thickness is exaggerated so you can see it.</p>
+  </div>
+</dialog>
 
 <script>
 /* three.js r128, MIT License, Copyright 2010-2021 three.js authors, https://threejs.org */
@@ -182,36 +222,36 @@ summary{cursor:pointer;color:var(--navy);font-weight:700}
 <script>
 (function(){
 'use strict';
-/* ================= column types and physical data ================= */
+/* ================= data ================= */
 var TYPES={
-  hplc:{name:'HPLC, packed column',packed:true,liquid:true,uUnit:'mm/s',uScale:1e-3,hUnit:'µm',hScale:1e-6,xMax:8,yFixed:40,lenUnit:'mm',lenScale:1e-3,
-        mob:[['water','Water'],['methanol','Methanol'],['acetonitrile','Acetonitrile']],mobDef:'methanol',mobLabel:'Mobile phase (solvent)'},
-  gcp:{name:'GC, packed column',packed:true,liquid:false,uUnit:'cm/s',uScale:1e-2,hUnit:'mm',hScale:1e-3,xMax:60,yFixed:3,lenUnit:'m',lenScale:1,
+  hplc:{packed:true,liquid:true,uUnit:'mm/s',uScale:1e-3,hUnit:'µm',hScale:1e-6,xMax:8,yFixed:25,lenUnit:'mm',lenScale:1e-3,
+        mob:[['water','Water'],['methanol','Methanol'],['acetonitrile','Acetonitrile']],mobDef:'methanol',mobLabel:'Solvent'},
+  gcp:{packed:true,liquid:false,uUnit:'cm/s',uScale:1e-2,hUnit:'mm',hScale:1e-3,xMax:60,yFixed:2,lenUnit:'m',lenScale:1,
         mob:[['N2','N₂'],['He','He'],['H2','H₂']],mobDef:'He',mobLabel:'Carrier gas'},
-  gcc:{name:'GC, capillary column',packed:false,liquid:false,uUnit:'cm/s',uScale:1e-2,hUnit:'mm',hScale:1e-3,xMax:120,yFixed:1.2,lenUnit:'m',lenScale:1,
+  gcc:{packed:false,liquid:false,uUnit:'cm/s',uScale:1e-2,hUnit:'mm',hScale:1e-3,xMax:120,yFixed:0.8,lenUnit:'m',lenScale:1,
         mob:[['N2','N₂'],['He','He'],['H2','H₂']],mobDef:'He',mobLabel:'Carrier gas'}
 };
 var GASES={N2:{M:28.01,V:18.5,name:'N₂'},He:{M:4.003,V:2.67,name:'He'},H2:{M:2.016,V:6.12,name:'H₂'}};
 var SOLV={water:{phi:2.6,Ms:18.02,eta:0.890,B:1877,name:'water'},methanol:{phi:1.9,Ms:32.04,eta:0.544,B:1224,name:'methanol'},acetonitrile:{phi:1.0,Ms:41.05,eta:0.343,B:922,name:'acetonitrile'}};
-/* parameter specs: r[type] = [min,max,step,default]; log sliders use step 0 */
 var SPEC=[
   {id:'u',grp:'flow',label:'Linear velocity, u',unit:function(t){return t.uUnit;},r:{hplc:[0.05,8,0.05,1],gcp:[1,60,0.5,15],gcc:[2,120,1,30]}},
   {id:'L',grp:'flow',label:'Column length, L',unit:function(t){return t.lenUnit;},r:{hplc:[30,250,5,150],gcp:[0.5,6,0.1,2],gcc:[5,100,1,30]}},
-  {id:'id',grp:'flow',label:'Inner diameter',unit:'mm',r:{gcc:[0.10,0.53,0.01,0.25]},help:'Wider tubes give molecules farther to diffuse across, which raises C<sub>M</sub>.'},
+  {id:'id',grp:'flow',label:'Inner diameter',unit:'mm',r:{gcc:[0.10,0.53,0.01,0.25]}},
   {id:'dp',grp:'A',label:'Particle diameter, d<sub>p</sub>',unit:'µm',r:{hplc:[1.7,10,0.1,5],gcp:[80,300,5,150]}},
-  {id:'lam',grp:'A',label:'Packing irregularity, λ',unit:'',r:{hplc:[0.3,2,0.05,0.5],gcp:[0.3,2,0.05,0.75]},ends:['even','uneven, with channels']},
-  {id:'M',grp:'B',label:'Analyte molar mass',unit:'g/mol',log:true,r:{hplc:[50,2000,0,200],gcp:[16,500,0,114],gcc:[16,500,0,114]},ends:['small','large']},
+  {id:'lam',grp:'A',label:'Packing irregularity, λ',unit:'',r:{hplc:[0.3,2,0.05,0.5],gcp:[0.3,2,0.05,0.75]}},
+  {id:'M',grp:'B',label:'Analyte molar mass',unit:'g/mol',log:true,r:{hplc:[50,2000,0,200],gcp:[16,500,0,114],gcc:[16,500,0,114]}},
   {id:'T',grp:'B',label:'Column temperature',unit:'°C',r:{hplc:[20,80,1,30],gcp:[50,300,5,150],gcc:[50,300,5,150]}},
   {id:'P',grp:'B',label:'Average column pressure',unit:'atm',r:{gcp:[1,5,0.1,2],gcc:[1,5,0.1,2]}},
-  {id:'gam',grp:'B',label:'Obstruction factor, γ',unit:'',r:{hplc:[0.5,1,0.05,0.7],gcp:[0.5,1,0.05,0.7]},ends:['crowded bed','open']},
+  {id:'gam',grp:'B',label:'Obstruction factor, γ',unit:'',r:{hplc:[0.5,1,0.05,0.7],gcp:[0.5,1,0.05,0.7]}},
   {id:'k',grp:'C',label:'Retention factor, k',unit:'',log:true,r:{hplc:[0.2,20,0,3],gcp:[0.2,20,0,5],gcc:[0.2,20,0,5]}},
   {id:'df',grp:'C',label:'Stationary phase thickness, d<sub>f</sub>',unit:'µm',log:true,r:{hplc:[0.001,0.5,0,0.003],gcp:[0.2,10,0,1],gcc:[0.1,5,0,0.25]}},
-  {id:'DS',grp:'C',label:'Diffusion in the stationary phase, D<sub>S</sub>',unit:'cm²/s',log:true,sci:true,r:{hplc:[1e-7,1e-5,0,1e-6],gcp:[1e-7,1e-5,0,1e-6],gcc:[1e-7,1e-5,0,1e-6]},ends:['slow','fast']}
+  {id:'DS',grp:'C',label:'Diffusion in stationary phase, D<sub>S</sub>',unit:'cm²/s',log:true,sci:true,r:{hplc:[1e-7,1e-5,0,1e-6],gcp:[1e-7,1e-5,0,1e-6],gcc:[1e-7,1e-5,0,1e-6]}}
 ];
-var VALS={};
-Object.keys(TYPES).forEach(function(t){VALS[t]={mobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])VALS[t][s.id]=s.r[t][3];});});
+function specOf(id){for(var i=0;i<SPEC.length;i++)if(SPEC[i].id===id)return SPEC[i];}
+var VALS={},DEF={};
+function defaults(t){var o={mobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])o[s.id]=s.r[t][3];});return o;}
+Object.keys(TYPES).forEach(function(t){VALS[t]=defaults(t);});
 var type='hplc';
-
 function physics(t,v){
   var TT=TYPES[t],T=v.T+273.15,DM,eta=null;
   if(TT.liquid){var s=SOLV[v.mobile];eta=s.eta*Math.exp(s.B*(1/T-1/298.15));DM=7.4e-8*Math.sqrt(s.phi*s.Ms)*T/(eta*Math.pow(1.2*v.M,0.6))*1e-4;}
@@ -223,10 +263,9 @@ function physics(t,v){
   var CM=TT.packed?0.25*fk*dp*dp/DM:fk*r*r/DM;
   var C=CS+CM,uopt=Math.sqrt(B/C),Hmin=A+2*Math.sqrt(B*C);
   var u=v.u*TT.uScale,H=A+B/u+C*u,L=v.L*TT.lenScale,N=L/H,tM=L/u,tR=tM*(1+k);
-  return {DM:DM,eta:eta,A:A,B:B,CS:CS,CM:CM,C:C,uopt:uopt,Hmin:Hmin,u:u,H:H,HA:A,HB:B/u,HCS:CS*u,HCM:CM*u,L:L,N:N,Nopt:L/Hmin,tM:tM,tR:tR,w:4*tR/Math.sqrt(N),k:k,dp:dp,r:r};
+  return {DM:DM,eta:eta,A:A,B:B,CS:CS,CM:CM,C:C,uopt:uopt,Hmin:Hmin,u:u,H:H,HA:A,HB:B/u,HCS:CS*u,HCM:CM*u,L:L,N:N,Nopt:L/Hmin,tM:tM,tR:tR,w:4*tR/Math.sqrt(N),k:k,dp:dp,r:r,gam:gam};
 }
-var REF={};
-Object.keys(TYPES).forEach(function(t){var d={};Object.keys(VALS[t]).forEach(function(k){d[k]=VALS[t][k];});var p=physics(t,d);REF[t]={H:p.Hmin,HB:p.B/p.uopt,C:p.C};});
+var REF={};Object.keys(TYPES).forEach(function(t){var p=physics(t,defaults(t));REF[t]={H:p.Hmin,HB:p.B/p.uopt,C:p.C};});
 
 /* ================= formatting ================= */
 var SUPD={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
@@ -237,185 +276,182 @@ function fmtH(m){var t=TYPES[type],v=m/t.hScale;if(v>0&&v<0.001)return '≈ 0 '+
 function fmtU(ms){var t=TYPES[type];return sig(ms/t.uScale,3)+' '+t.uUnit;}
 function fmtTime(s){if(s<120)return sig(s,3)+' s';if(s<7200)return sig(s/60,3)+' min';return sig(s/3600,3)+' h';}
 function fmtVal(s,v){if(s.sci)return sci(v,1);if(s.log)return sig(v,s.id==='M'?3:2);var st=s.r[type][2];var dec=st<0.01?3:(st<0.1?2:(st<1?1:0));return v.toFixed(dec);}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function gauss(){var u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function norm01(s,v){var rr=s.r[type];if(s.log)return (Math.log10(v)-Math.log10(rr[0]))/(Math.log10(rr[1])-Math.log10(rr[0]));return (v-rr[0])/(rr[1]-rr[0]);}
+var $=function(id){return document.getElementById(id);};
 
 /* ================= parameter panel ================= */
-var params=document.getElementById('params');
-var GROUPS=[
-  {id:'flow',title:'Flow and column',help:'How fast the mobile phase moves and the size of the column.'},
-  {id:'A',title:'A · Multiple paths',termKey:'HA',color:'--tA'},
-  {id:'B',title:'B · Longitudinal diffusion',termKey:'HB',color:'--tB'},
-  {id:'C',title:'C · Mass transfer',termKey:'HC',color:'--tCS'}
-];
-var termEls={};
-function buildParams(){
-  var TT=TYPES[type];params.innerHTML='';termEls={};
-  GROUPS.forEach(function(G){
-    var fs=document.createElement('fieldset');
-    var lg=document.createElement('legend');lg.textContent=G.title;fs.appendChild(lg);
-    if(G.termKey){var tv=document.createElement('div');tv.className='term';tv.style.color='var('+G.color+')';fs.appendChild(tv);termEls[G.id]=tv;}
-    var hp=document.createElement('p');hp.className='help';
-    hp.innerHTML={flow:G.help,
-      A:TT.packed?'Molecules take paths of different lengths around the particles, so some arrive early and some late. Smaller, more evenly packed particles make the paths more alike.':'',
-      B:'Molecules diffuse forward and backward along the column the whole time they are in it, so this term shrinks at higher flow.',
-      C:'Molecules need time to move into and out of the stationary phase and across the mobile phase. While they do, the flow carries their neighbors ahead, so this term grows with flow.'}[G.id];
-    fs.appendChild(hp);
-    if(G.id==='A'&&!TT.packed){var inf=document.createElement('p');inf.className='info';inf.innerHTML='A capillary column is an open tube with no particles, so every molecule has the same path: <b>A = 0</b>.';fs.appendChild(inf);}
-    if(G.id==='B'){
-      var sg=document.createElement('div');sg.className='seg';
-      sg.innerHTML='<span class="lab">'+TT.mobLabel+'</span>';
-      var grp=document.createElement('div');grp.className='group';grp.setAttribute('role','group');grp.setAttribute('aria-label',TT.mobLabel);
-      TT.mob.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('aria-pressed',VALS[type].mobile===m[0]?'true':'false');
-        b.addEventListener('click',function(){VALS[type].mobile=m[0];grp.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(true);});grp.appendChild(b);});
-      sg.appendChild(grp);fs.appendChild(sg);
-      var dm=document.createElement('p');dm.className='info';dm.id='dmInfo';fs.appendChild(dm);
-    }
-    SPEC.filter(function(s){return s.grp===G.id&&s.r[type];}).forEach(function(s){
-      var rr=s.r[type],row=document.createElement('div');row.className='row';
-      var lid='p_'+s.id;
-      var unit=typeof s.unit==='function'?s.unit(TT):s.unit;
-      row.innerHTML='<div class="top"><label for="'+lid+'">'+s.label+'</label><output for="'+lid+'" id="o_'+s.id+'"></output></div>';
-      var inp=document.createElement('input');inp.type='range';inp.id=lid;
-      if(s.log){inp.min=Math.log10(rr[0]);inp.max=Math.log10(rr[1]);inp.step=0.005;inp.value=Math.log10(VALS[type][s.id]);}
-      else{inp.min=rr[0];inp.max=rr[1];inp.step=rr[2];inp.value=VALS[type][s.id];}
-      row.appendChild(inp);
-      var ends=document.createElement('div');ends.className='ends';
-      ends.innerHTML='<span>'+(s.ends?s.ends[0]:(s.sci?sci(rr[0],0):fmtVal(s,rr[0])))+'</span><span>'+(s.ends?s.ends[1]:(s.sci?sci(rr[1],0):fmtVal(s,rr[1])))+'</span>';
-      row.appendChild(ends);
-      var outEl=row.querySelector('output');function show(){outEl.textContent=fmtVal(s,VALS[type][s.id])+(unit?' '+unit:'');inp.setAttribute('aria-valuetext',fmtVal(s,VALS[type][s.id])+(unit?' '+unit:''));}
-      inp.addEventListener('input',function(){VALS[type][s.id]=s.log?Math.pow(10,+inp.value):+inp.value;show();update(s.id==='dp'||s.id==='lam'||s.id==='id'||s.id==='df');});
-      fs.appendChild(row);show();
+var pgroup='flow',controls={};
+var HINTS={
+  flow:function(TT){return 'Velocity sets where you are on the graph. Length doesn’t change H, but more length means more plates (N = L/H).'+(TT.packed?'':' A wider capillary raises C<sub>M</sub>.');},
+  A:function(TT){return TT.packed?'Smaller, more evenly packed particles make all paths more alike, so A shrinks.':'';},
+  B:function(TT){return 'These set how fast the analyte diffuses in the mobile phase (D<sub>M</sub>). Faster diffusion raises B/u but lowers C<sub>M</sub>·u.';},
+  C:function(TT){return 'Thicker films and slow diffusion in them raise C<sub>S</sub>. '+(TT.packed?'C<sub>M</sub> grows with d<sub>p</sub>² (set in A).':'C<sub>M</sub> grows with the column radius² (set in Flow).');}
+};
+var MQall=window.matchMedia('(min-width:900px) and (min-height:640px)');
+var GNAME={flow:'Flow and column',A:'A · Multiple paths',B:'B · Longitudinal diffusion',C:'C · Mass transfer'},GCOL={flow:'--navy',A:'--tA',B:'--tB',C:'--tCS'};
+function renderGroup(g,box){
+  var TT=TYPES[type];
+  if(g==='A'&&!TT.packed){var p0=document.createElement('p');p0.className='info';p0.innerHTML='A capillary column is an open tube with no particles, so every molecule follows the same path: <b>A = 0</b>.';box.appendChild(p0);return;}
+  if(g==='B'){
+    var lab=document.createElement('div');lab.className='row';lab.innerHTML='<div class="top"><span>'+TT.mobLabel+'</span></div>';
+    var ch=document.createElement('div');ch.className='chips';ch.setAttribute('role','group');ch.setAttribute('aria-label',TT.mobLabel);
+    TT.mob.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('aria-pressed',VALS[type].mobile===m[0]?'true':'false');
+      b.addEventListener('click',function(){VALS[type].mobile=m[0];ch.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(false);});ch.appendChild(b);});
+    lab.appendChild(ch);box.appendChild(lab);
+    var dm=document.createElement('p');dm.className='info';dm.id='dmInfo';box.appendChild(dm);
+  }
+  SPEC.filter(function(s){return s.grp===g&&s.r[type];}).forEach(function(s){
+    var rr=s.r[type],unit=typeof s.unit==='function'?s.unit(TT):s.unit,row=document.createElement('div');row.className='row';
+    var lid='p_'+s.id;
+    row.innerHTML='<div class="top"><label for="'+lid+'">'+s.label+'</label></div>';
+    var vb=document.createElement('button');vb.type='button';vb.className='val';vb.setAttribute('aria-label','Type a value for '+s.label.replace(/<[^>]+>/g,''));
+    row.querySelector('.top').appendChild(vb);
+    var inp=document.createElement('input');inp.type='range';inp.id=lid;
+    if(s.log){inp.min=Math.log10(rr[0]);inp.max=Math.log10(rr[1]);inp.step=0.005;}else{inp.min=rr[0];inp.max=rr[1];inp.step=rr[2];}
+    row.appendChild(inp);
+    function show(){var v=VALS[type][s.id],t=fmtVal(s,v)+(unit?' '+unit:'');vb.textContent=t;inp.value=s.log?Math.log10(v):v;inp.setAttribute('aria-valuetext',t);}
+    var geo=s.id==='dp'||s.id==='lam'||s.id==='id'||s.id==='df';
+    inp.addEventListener('input',function(){VALS[type][s.id]=s.log?Math.pow(10,+inp.value):+inp.value;show();update(geo);});
+    vb.addEventListener('click',function(){
+      var ti=document.createElement('input');ti.type='text';ti.inputMode='decimal';ti.value=s.sci?VALS[type][s.id].toExponential(1):fmtVal(s,VALS[type][s.id]);
+      ti.setAttribute('aria-label',vb.getAttribute('aria-label')+' ('+(s.sci?rr[0].toExponential(0)+' to '+rr[1].toExponential(0):rr[0]+' to '+rr[1])+(unit?' '+unit:'')+')');
+      ti.style.cssText='width:8.5em;padding:2px 6px;border:1px solid var(--steel);border-radius:5px;background:var(--bg);color:var(--ink);font-size:16px;text-align:right';
+      vb.replaceWith(ti);ti.focus();ti.select();
+      var done=false;function fin(apply){if(done)return;done=true;if(apply){var x=parseFloat(String(ti.value).replace('×10','e').replace(/\s/g,''));if(isFinite(x))VALS[type][s.id]=clamp(x,rr[0],rr[1]);}ti.replaceWith(vb);show();update(geo);}
+      ti.addEventListener('blur',function(){fin(true);});
+      ti.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();fin(true);}else if(e.key==='Escape'){fin(false);}});
     });
-    if(G.id==='B'&&!TT.packed){var g2=document.createElement('p');g2.className='info';g2.innerHTML='In an open tube nothing blocks diffusion, so the obstruction factor γ = 1.';fs.appendChild(g2);}
-    if(G.id==='C'){var cm=document.createElement('p');cm.className='info';cm.innerHTML=TT.packed?'C<sub>M</sub> also grows with particle size (d<sub>p</sub>²) and shrinks with faster diffusion in the mobile phase (D<sub>M</sub>).':'C<sub>M</sub> also grows with the column radius (r²) and shrinks with faster diffusion in the mobile phase (D<sub>M</sub>).';fs.appendChild(cm);}
-    params.appendChild(fs);
+    controls[s.id]={show:show};
+    box.appendChild(row);show();
   });
+  if(g==='B'&&!TT.packed){var g2=document.createElement('p');g2.className='info';g2.innerHTML='In an open tube nothing blocks diffusion, so γ = 1.';box.appendChild(g2);}
+  var h=document.createElement('p');h.className='hint';h.innerHTML=HINTS[g](TT);if(h.innerHTML)box.appendChild(h);
 }
+function buildPanel(){
+  var box=$('pbody'),all=MQall.matches;box.innerHTML='';controls={};
+  $('pbody').parentNode.classList.toggle('all',all);
+  if(all){['flow','A','B','C'].forEach(function(g){var hd=document.createElement('div');hd.className='ghead';hd.innerHTML='<h2>'+GNAME[g]+'</h2><span id="gh-'+g+'" style="color:var('+GCOL[g]+')"></span>';box.appendChild(hd);renderGroup(g,box);});}
+  else renderGroup(pgroup,box);
+  var rb=document.createElement('button');rb.type='button';rb.className='btn reset';rb.textContent='Reset all to defaults';
+  rb.addEventListener('click',function(){VALS[type]=defaults(type);buildPanel();update(true);});box.appendChild(rb);
+}
+MQall.addEventListener('change',function(){buildPanel();if(P){updateLive();updateDM();}});
+function setPGroup(g){pgroup=g;setFold(false);document.querySelectorAll('#ptabs [role=tab]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-p')===g?'true':'false');});buildPanel();updateDM();$('pbody').scrollTop=0;}
+document.querySelectorAll('#ptabs [role=tab]').forEach(function(b){b.addEventListener('click',function(){setPGroup(b.getAttribute('data-p'));});});
+function setFold(c){var r=document.querySelector('.right');if(r.classList.contains('collapsed')===c)return;r.classList.toggle('collapsed',c);var f=$('fold');f.textContent=c?'▴':'▾';f.setAttribute('aria-expanded',c?'false':'true');f.setAttribute('aria-label',c?'Show the controls':'Hide the controls to enlarge the view');}
+$('fold').addEventListener('click',function(){setFold(!document.querySelector('.right').classList.contains('collapsed'));});
 
-/* ================= Van Deemter plot ================= */
-var NS='http://www.w3.org/2000/svg',plot=document.getElementById('plot'),yMode='fixed';
+/* ================= Van Deemter graph (drawn at the real pixel size) ================= */
+var NS='http://www.w3.org/2000/svg',plot=$('plot'),GEO=null;
 function el(tag,a,txt){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e;}
-function niceStep(max){var raw=max/5,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;}
-function drawPlot(P){
-  var TT=TYPES[type],W=540,H=350,PL=58,PR=16,PT=16,PB=46;
-  var xmax=TT.xMax,ymax;
-  if(yMode==='fixed')ymax=TT.yFixed;
-  else{var hmin=P.Hmin/TT.hScale,hu=P.H/TT.hScale;ymax=Math.max(2.2*hmin,1.15*hu);}
-  var ys=niceStep(ymax);ymax=Math.ceil(ymax/ys-1e-9)*ys;
-  var xs=niceStep(xmax);
-  function X(u){return PL+u/xmax*(W-PL-PR);}
-  function Y(h){return Math.max(-4000,H-PB-h/ymax*(H-PT-PB));}
+function niceStep(max,n){var raw=max/(n||5),p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p;}
+function drawPlot(){
+  if(!$('v-graph').classList.contains('on'))return;
+  var TT=TYPES[type],W=Math.max(200,plot.clientWidth),H=Math.max(140,plot.clientHeight);
+  plot.setAttribute('viewBox','0 0 '+W+' '+H);
+  var PL=48,PR=18,PT=W<480?40:26,PB=34,xmax=TT.xMax;
+  var ymax=TT.yFixed;var hu=P.H/TT.hScale;if(hu>ymax*0.92||P.Hmin/TT.hScale>ymax*0.6)ymax=Math.max(2.2*P.Hmin/TT.hScale,1.15*hu);
+  var ys=niceStep(ymax,H<220?3:5);ymax=Math.ceil(ymax/ys-1e-9)*ys;var xs=niceStep(xmax,W<420?4:6);
+  function X(u){return PL+u/xmax*(W-PL-PR);}function Y(h){return Math.max(-4000,H-PB-h/ymax*(H-PT-PB));}
+  GEO={PL:PL,PR:PR,W:W,xmax:xmax};
   while(plot.firstChild)plot.removeChild(plot.firstChild);
   var defs=el('defs',{}),cp=el('clipPath',{id:'pc'});cp.appendChild(el('rect',{x:PL,y:PT,width:W-PL-PR,height:H-PT-PB}));defs.appendChild(cp);plot.appendChild(defs);
-  var t;
-  for(t=0;t<=xmax+1e-9;t+=xs){plot.appendChild(el('line',{x1:X(t),y1:PT,x2:X(t),y2:H-PB,'class':'gl'}));plot.appendChild(el('text',{x:X(t),y:H-PB+18,'text-anchor':'middle','class':'tk'},sig(t,3)));}
-  for(t=0;t<=ymax+1e-9;t+=ys){plot.appendChild(el('line',{x1:PL,y1:Y(t),x2:W-PR,y2:Y(t),'class':'gl'}));plot.appendChild(el('text',{x:PL-7,y:Y(t)+4,'text-anchor':'end','class':'tk'},sig(t,3)));}
+  var t,ux=X(P.u/TT.uScale),hy=Y(P.H/TT.hScale);
+  for(t=0;t<=xmax+1e-9;t+=xs){plot.appendChild(el('line',{x1:X(t),y1:PT,x2:X(t),y2:H-PB,'class':'gl'}));plot.appendChild(el('text',{x:X(t),y:H-PB+15,'text-anchor':'middle','class':'tk'},sig(t,3)));}
+  for(t=0;t<=ymax+1e-9;t+=ys){plot.appendChild(el('line',{x1:PL,y1:Y(t),x2:W-PR,y2:Y(t),'class':'gl'}));plot.appendChild(el('text',{x:PL-6,y:Y(t)+4,'text-anchor':'end','class':'tk'},sig(t,3)));}
   plot.appendChild(el('line',{x1:PL,y1:H-PB,x2:W-PR,y2:H-PB,'class':'ax'}));plot.appendChild(el('line',{x1:PL,y1:PT,x2:PL,y2:H-PB,'class':'ax'}));
-  plot.appendChild(el('text',{x:(PL+W-PR)/2,y:H-8,'text-anchor':'middle','class':'axt'},'Linear velocity, u ('+TT.uUnit+')'));
-  plot.appendChild(el('text',{transform:'translate(16,'+((PT+H-PB)/2)+') rotate(-90)','text-anchor':'middle','class':'axt'},'Plate height, H ('+TT.hUnit+')'));
+  plot.appendChild(el('text',{x:(PL+W-PR)/2,y:H-4,'text-anchor':'middle','class':'axt'},'u ('+TT.uUnit+')'));
+  plot.appendChild(el('text',{transform:'translate(12,'+((PT+H-PB)/2)+') rotate(-90)','text-anchor':'middle','class':'axt'},'H ('+TT.hUnit+')'));
   var g=el('g',{'clip-path':'url(#pc)',fill:'none'});
-  function path(f){var d='';for(var i=1;i<=300;i++){var uu=xmax*i/300;d+=(d?'L':'M')+X(uu).toFixed(1)+' '+Y(f(uu*TT.uScale)/TT.hScale).toFixed(1);}return d;}
-  if(P.A>0)g.appendChild(el('path',{d:path(function(){return P.A;}),stroke:'var(--tA)','stroke-width':1.8,'stroke-dasharray':'7 4'}));
-  g.appendChild(el('path',{d:path(function(u){return P.B/u;}),stroke:'var(--tB)','stroke-width':1.8,'stroke-dasharray':'3 3'}));
-  g.appendChild(el('path',{d:path(function(u){return P.CS*u;}),stroke:'var(--tCS)','stroke-width':1.8,'stroke-dasharray':'9 3 2 3'}));
-  g.appendChild(el('path',{d:path(function(u){return P.CM*u;}),stroke:'var(--tCM)','stroke-width':1.8,'stroke-dasharray':'9 3 2 3'}));
-  g.appendChild(el('path',{d:path(function(u){return P.A+P.B/u+P.C*u;}),stroke:'var(--navy)','stroke-width':3.2}));
+  function path(f){var d='';for(var i=1;i<=240;i++){var uu=xmax*i/240;d+=(d?'L':'M')+X(uu).toFixed(1)+' '+Y(f(uu*TT.uScale)/TT.hScale).toFixed(1);}return d;}
+  if(P.A>0)g.appendChild(el('path',{d:path(function(){return P.A;}),stroke:'var(--tA)','stroke-width':1.6,'stroke-dasharray':'7 4'}));
+  g.appendChild(el('path',{d:path(function(u){return P.B/u;}),stroke:'var(--tB)','stroke-width':1.6,'stroke-dasharray':'3 3'}));
+  g.appendChild(el('path',{d:path(function(u){return P.CS*u;}),stroke:'var(--tCS)','stroke-width':1.6,'stroke-dasharray':'9 3 2 3'}));
+  g.appendChild(el('path',{d:path(function(u){return P.CM*u;}),stroke:'var(--tCM)','stroke-width':1.6,'stroke-dasharray':'9 3 2 3'}));
+  g.appendChild(el('path',{d:path(function(u){return P.A+P.B/u+P.C*u;}),stroke:'var(--navy)','stroke-width':3}));
   plot.appendChild(g);
-  var ux=X(P.u/TT.uScale);
-  plot.appendChild(el('line',{x1:ux,y1:PT,x2:ux,y2:H-PB,stroke:'var(--muted)','stroke-dasharray':'2 4','stroke-width':1.4}));
-  var hy=Y(P.H/TT.hScale);
-  if(hy>=PT)plot.appendChild(el('circle',{cx:ux,cy:hy,r:6,fill:'var(--navy)',stroke:'var(--bg)','stroke-width':2}));
+  plot.appendChild(el('line',{x1:ux,y1:PT,x2:ux,y2:H-PB,stroke:'var(--muted)','stroke-dasharray':'2 4','stroke-width':1.3}));
   var ox=X(P.uopt/TT.uScale),oy=Y(P.Hmin/TT.hScale);
-  if(ox<=W-PR&&oy>=PT){plot.appendChild(el('circle',{cx:ox,cy:oy,r:5,fill:'var(--bg)',stroke:'var(--navy)','stroke-width':2}));
-    var right=ox>W-PR-120;plot.appendChild(el('text',{x:ox+(right?-8:8),y:oy+18,'text-anchor':right?'end':'start','font-size':12,fill:'var(--navy)','class':'halo'},'lowest H'));}
-  var lr=ux>W-PR-120;
-  plot.appendChild(el('text',{x:ux+(lr?-6:6),y:PT+14,'text-anchor':lr?'end':'start','font-size':12,fill:'var(--muted)','class':'halo'},'your u'));
+  if(ox<=W-PR&&oy>=PT){plot.appendChild(el('circle',{cx:ox,cy:oy,r:4.5,fill:'var(--bg)',stroke:'var(--navy)','stroke-width':2}));
+    if(Math.abs(ox-ux)>46){var rt=ox>W-PR-90;plot.appendChild(el('text',{x:ox+(rt?-7:7),y:oy+16,'text-anchor':rt?'end':'start','font-size':11,fill:'var(--navy)','class':'halo'},'H min'));}}
+  if(hy>=PT)plot.appendChild(el('circle',{cx:ux,cy:hy,r:7,fill:'var(--navy)',stroke:'var(--bg)','stroke-width':2.5}));
 }
+(function graphDrag(){
+  var on=false;
+  function setU(e){if(!GEO)return;var r=plot.getBoundingClientRect(),x=(e.clientX-r.left)*(GEO.W/r.width);var uu=(x-GEO.PL)/(GEO.W-GEO.PL-GEO.PR)*GEO.xmax;var s=specOf('u'),rr=s.r[type];uu=clamp(Math.round(uu/rr[2])*rr[2],rr[0],rr[1]);VALS[type].u=uu;if(controls.u)controls.u.show();update(false);}
+  plot.addEventListener('pointerdown',function(e){on=true;plot.setPointerCapture(e.pointerId);document.querySelector('.ghint').classList.add('gone');setU(e);});
+  plot.addEventListener('pointermove',function(e){if(on)setU(e);});
+  plot.addEventListener('pointerup',function(){on=false;});plot.addEventListener('pointercancel',function(){on=false;});
+})();
+$('leg').innerHTML='<span style="color:var(--navy);font-weight:700">H</span><span style="color:var(--tA)">A</span><span style="color:var(--tB)">B/u</span><span style="color:var(--tCS)">C<sub>S</sub>u</span><span style="color:var(--tCM)">C<sub>M</sub>u</span>';
 
-/* ================= readouts ================= */
+/* ================= live readout, tab values, numbers view ================= */
 var P=null;
-function updateReadouts(){
-  var TT=TYPES[type];
-  var parts=[['A',P.HA,'--tA'],['B/u',P.HB,'--tB'],['C\u209b·u',P.HCS,'--tCS'],['C\u2098·u',P.HCM,'--tCM']];
-  document.getElementById('Hbig').textContent='H = '+fmtH(P.H);
-  document.getElementById('Hsub').textContent=TT.packed?('= '+sig(P.H/P.dp,3)+' particle diameters'):('at u = '+fmtU(P.u));
-  var bar=document.getElementById('bar');bar.innerHTML='';
-  var lab='';
+function updateLive(){
+  var TT=TYPES[type],parts=[['A',P.HA,'--tA'],['B/u',P.HB,'--tB'],['C<sub>S</sub>u',P.HCS,'--tCS'],['C<sub>M</sub>u',P.HCM,'--tCM']];
+  $('Hbig').textContent='H = '+fmtH(P.H);
+  $('Hsub').innerHTML='u<sub>opt</sub> '+fmtU(P.uopt)+' · N '+Math.round(P.N).toLocaleString('en-US');
+  var ratio=P.u/P.uopt,st=$('Hst');
+  if(ratio<0.6){st.textContent='Below optimum';st.style.color='var(--tB)';}else if(ratio>1.7){st.textContent='Above optimum';st.style.color='var(--tCM)';}else{st.textContent='Near optimum';st.style.color='var(--good)';}
+  var bar=$('bar');bar.innerHTML='';var lab='';
   parts.forEach(function(p){var s=document.createElement('span');s.style.width=(p[1]/P.H*100)+'%';s.style.background='var('+p[2]+')';bar.appendChild(s);
-    lab+='<span><i style="background:var('+p[2]+')"></i>'+p[0].replace('C\u209b','C<sub>S</sub>').replace('C\u2098','C<sub>M</sub>')+' '+fmtH(p[1])+' ('+Math.round(p[1]/P.H*100)+'%)</span>';});
-  document.getElementById('barlab').innerHTML=lab;
-  document.getElementById('eqnum').innerHTML='Right now: <b>'+fmtH(P.H)+'</b> = '+fmtH(P.HA)+' + '+fmtH(P.HB)+' + ('+fmtH(P.HCS)+' + '+fmtH(P.HCM)+')';
-  if(termEls.A)termEls.A.innerHTML=TT.packed?('A = 2λd<sub>p</sub> = '+fmtH(P.A)):'A = 0';
-  if(termEls.B)termEls.B.textContent='B/u = '+fmtH(P.HB);
-  if(termEls.C){termEls.C.innerHTML='C<sub>S</sub>·u = '+fmtH(P.HCS)+', C<sub>M</sub>·u = '+fmtH(P.HCM);}
-  var dmi=document.getElementById('dmInfo');
-  if(dmi)dmi.innerHTML='Analyte diffusion coefficient in the '+(TT.liquid?SOLV[VALS[type].mobile].name+' (viscosity '+sig(P.eta,2)+' cP)':GASES[VALS[type].mobile].name+' carrier gas')+': <b>D<sub>M</sub> = '+sci(P.DM*1e4,2)+' cm²/s</b>';
-  document.getElementById('rN').textContent=Math.round(P.N).toLocaleString('en-US');
-  document.getElementById('rNopt').textContent=Math.round(P.Nopt).toLocaleString('en-US');
-  document.getElementById('rUopt').textContent=fmtU(P.uopt);
-  document.getElementById('rHmin').textContent=fmtH(P.Hmin);
-  document.getElementById('rTR').textContent=fmtTime(P.tR);
-  document.getElementById('rW').textContent=fmtTime(P.w);
-  document.getElementById('rDM').textContent=sci(P.DM*1e4,2)+' cm²/s';
-  var ratio=P.u/P.uopt,big=parts.slice().sort(function(a,b){return b[1]-a[1];})[0];
-  var bigName={'A':'the multiple-paths term, A','B/u':'longitudinal diffusion, B/u','C\u209b·u':'stationary phase mass transfer, C<sub>S</sub>·u','C\u2098·u':'mobile phase mass transfer, C<sub>M</sub>·u'}[big[0]];
-  var s='At u = '+fmtU(P.u)+', H = '+fmtH(P.H)+' and the biggest contribution is '+bigName+' ('+Math.round(big[1]/P.H*100)+'%). ';
-  if(ratio<0.6)s+='You are well below the optimum velocity of '+fmtU(P.uopt)+': molecules spend so long in the column that diffusion along it spreads the band. Speeding up would sharpen the peaks and save time.';
-  else if(ratio>1.7)s+='You are well above the optimum velocity of '+fmtU(P.uopt)+': the flow outruns the molecules moving into and out of the stationary phase. Slowing down would sharpen the peaks, at the cost of a longer run.';
-  else s+='You are close to the optimum velocity of '+fmtU(P.uopt)+', where H is near its lowest value of '+fmtH(P.Hmin)+'.';
-  document.getElementById('sum').innerHTML=s;
+    lab+='<span><i style="background:var('+p[2]+')"></i>'+p[0]+' '+Math.round(p[1]/P.H*100)+'%</span>';});
+  $('barlab').innerHTML=lab;
+  $('pv-flow').textContent=fmtU(P.u);
+  $('pv-A').textContent=fmtH(P.HA);
+  $('pv-B').textContent=fmtH(P.HB);
+  $('pv-C').textContent=fmtH(P.HCS+P.HCM);
+  var gh={flow:'u = '+fmtU(P.u),A:'A = '+fmtH(P.HA),B:'B/u = '+fmtH(P.HB),C:'C·u = '+fmtH(P.HCS+P.HCM)};Object.keys(gh).forEach(function(k){var e=$('gh-'+k);if(e)e.textContent=gh[k];});
+}
+function updateDM(){var d=$('dmInfo');if(!d)return;var TT=TYPES[type];d.innerHTML='D<sub>M</sub> in '+(TT.liquid?SOLV[VALS[type].mobile].name+' (viscosity '+sig(P.eta,2)+' cP)':GASES[VALS[type].mobile].name)+': <b>'+sci(P.DM*1e4,2)+' cm²/s</b>';}
+function updateNums(){
+  if(!$('v-nums').classList.contains('on'))return;
+  var TT=TYPES[type],ratio=P.u/P.uopt;
+  var adv=ratio<0.6?'You are well below the optimum velocity: molecules spend so long in the column that diffusion along it (B/u) spreads the band. Speeding up would sharpen peaks and save time.':(ratio>1.7?'You are well above the optimum velocity: the flow outruns mass transfer (C·u). Slowing down would sharpen peaks, at the cost of a longer run.':'You are close to the optimum velocity, where H is near its lowest value.');
+  function row(a,b){return '<tr><td>'+a+'</td><td>'+b+'</td></tr>';}
+  $('v-nums').innerHTML='<p>'+adv+'</p>'
+   +'<h3>Plate height</h3><table>'+row('H at u = '+fmtU(P.u),fmtH(P.H))+row('A',fmtH(P.HA))+row('B/u',fmtH(P.HB))+row('C<sub>S</sub>·u',fmtH(P.HCS))+row('C<sub>M</sub>·u',fmtH(P.HCM))+row('Lowest H, H<sub>min</sub>',fmtH(P.Hmin))+row('Optimum velocity, u<sub>opt</sub> = √(B/C)',fmtU(P.uopt))+(TT.packed?row('Reduced plate height, h = H/d<sub>p</sub>',sig(P.H/P.dp,3)):'')+'</table>'
+   +'<h3>Coefficients</h3><table>'+row('A = 2λd<sub>p</sub>',TT.packed?fmtH(P.A):'0')+row('B = 2γD<sub>M</sub>',sci(P.B*1e4,2)+' cm²/s')+row('C<sub>S</sub>',sci(P.CS,2)+' s')+row('C<sub>M</sub>',sci(P.CM,2)+' s')+row('D<sub>M</sub>',sci(P.DM*1e4,2)+' cm²/s')+row('γ',sig(P.gam,2))+'</table>'
+   +'<h3>Your separation</h3><table>'+row('Plates, N = L/H',Math.round(P.N).toLocaleString('en-US'))+row('Best possible N (at u<sub>opt</sub>)',Math.round(P.Nopt).toLocaleString('en-US'))+row('Dead time, t<sub>M</sub> = L/u',fmtTime(P.tM))+row('Retention time, t<sub>R</sub> = t<sub>M</sub>(1+k)',fmtTime(P.tR))+row('Peak width, 4σ = 4t<sub>R</sub>/√N',fmtTime(P.w))+'</table>';
 }
 
-/* ================= palette (CSS variables) ================= */
-var pal={};
-function readPal(){var cs=getComputedStyle(document.documentElement);['ink','navy','muted','rule','panel','bg','grid','tA','tB','tCS','tCM','mob','sta','part','partEdge','film','support'].forEach(function(k){pal[k]=cs.getPropertyValue('--'+k).trim();});}
+/* ================= close-up (2D) views ================= */
+var cm=$('cm'),cx=cm.getContext('2d'),CW=600,CH=300,mode='A',ms={},pal={};
+function readPal(){var cs=getComputedStyle(document.documentElement);['ink','navy','muted','bg','grid','tA','tB','tCS','tCM','mob','sta','part','partEdge','film','support'].forEach(function(k){pal[k]=cs.getPropertyValue('--'+k).trim();});}
 readPal();
-function gauss(){var u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
-function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
-function norm01(s,v){var rr=s.r[type];if(s.log)return (Math.log10(v)-Math.log10(rr[0]))/(Math.log10(rr[1])-Math.log10(rr[0]));return (v-rr[0])/(rr[1]-rr[0]);}
-function specOf(id){return SPEC.filter(function(s){return s.id===id;})[0];}
+function sizeMicro(){var r=cm.getBoundingClientRect();if(!r.width||!r.height)return false;var d=Math.min(2,window.devicePixelRatio||1);CH=clamp(r.height,250,340);var sc=r.height/CH;CW=r.width/sc;cm.width=Math.round(r.width*d);cm.height=Math.round(r.height*d);cx.setTransform(d*sc,0,0,d*sc,0,0);return true;}
 function speedFactor(){return clamp(P.u/P.uopt,0.2,3);}
-
-/* ================= zoomed (2D) views ================= */
-var cm=document.getElementById('cm'),cx=cm.getContext('2d'),CW=600,CH=300,mode='A',ms={};
-function sizeMicro(){var r=cm.getBoundingClientRect(),d=Math.min(2,window.devicePixelRatio||1);CW=Math.max(320,r.width);CH=300;cm.width=Math.round(CW*d);cm.height=Math.round(CH*d);cx.setTransform(d,0,0,d,0,0);}
+function drawProfile(xs,color,maxH){
+  var bw=5,nb=Math.ceil(CW/bw),h=new Array(nb).fill(0),i;xs.forEach(function(x){var b=Math.floor(x/bw);if(b>=0&&b<nb)h[b]++;});
+  var sm=new Array(nb).fill(0);for(i=0;i<nb;i++){for(var j=-3;j<=3;j++){var b=i+j;if(b>=0&&b<nb)sm[i]+=h[b]*Math.exp(-j*j/4);}}
+  var mx=Math.max.apply(null,sm)||1,base=8+maxH;
+  cx.beginPath();cx.moveTo(0,base);for(i=0;i<nb;i++)cx.lineTo(i*bw+bw/2,base-sm[i]/mx*(maxH-12));cx.lineTo(CW,base);cx.closePath();
+  cx.globalAlpha=0.22;cx.fillStyle=color;cx.fill();cx.globalAlpha=1;cx.strokeStyle=color;cx.lineWidth=1.6;cx.stroke();
+  cx.fillStyle=pal.muted;cx.font='11px Arial';cx.textAlign='right';cx.fillText('band profile',CW-8,18);cx.textAlign='left';
+}
 var MICRO={
   A:{
     init:function(){
-      var TT=TYPES[type];ms={circles:[],tr:[],t:0,snap:null,hold:0,top:40,bot:CH-34};
+      var TT=TYPES[type];ms={circles:[],tr:[],t:0,snap:null,hold:0,top:40,bot:CH-30};
       if(TT.packed){
-        var v=VALS[type],r=9+23*norm01(specOf('dp'),v.dp),irr=clamp((v.lam-0.3)/1.7,0,1);
-        var s=2*r*1.32,rh=s*Math.sqrt(3)/2,row=0;
-        for(var y=ms.top+r*0.6;y<ms.bot+r;y+=rh,row++){
-          for(var x=56+(row%2)*s/2;x<CW-30;x+=s){
-            if(Math.random()<0.02+0.2*irr)continue;
-            var rr=r*(1+(Math.random()*2-1)*0.38*irr)*0.86;
-            ms.circles.push({x:x+(Math.random()*2-1)*0.5*r*irr,y:y+(Math.random()*2-1)*0.5*r*irr,r:rr});
-          }
-        }
+        var v=VALS[type],r=9+23*norm01(specOf('dp'),v.dp),irr=clamp((v.lam-0.3)/1.7,0,1),s=2*r*1.32,rh=s*Math.sqrt(3)/2,row=0;
+        for(var y=ms.top+r*0.6;y<ms.bot+r;y+=rh,row++){for(var x=56+(row%2)*s/2;x<CW-30;x+=s){if(Math.random()<0.02+0.2*irr)continue;var rr=r*(1+(Math.random()*2-1)*0.38*irr)*0.86;ms.circles.push({x:x+(Math.random()*2-1)*0.5*r*irr,y:y+(Math.random()*2-1)*0.5*r*irr,r:rr});}}
       }
       ms.buckets={};ms.circles.forEach(function(c){var b=Math.floor(c.x/40);(ms.buckets[b]=ms.buckets[b]||[]).push(c);});
-      var n=36;for(var i=0;i<n;i++){var yy=ms.top+6+(ms.bot-ms.top-12)*i/(n-1);ms.tr.push({x:14,y:yy,trail:[[14,yy]],done:false,lx:14,ly:yy,cx:14,ct:0});}
+      var n=30;for(var i=0;i<n;i++){var yy=ms.top+6+(ms.bot-ms.top-12)*i/(n-1);ms.tr.push({x:14,y:yy,trail:[[14,yy]],done:false,lx:14,ly:yy,cx:14,ct:0});}
     },
     step:function(dt){
       if(ms.hold>0){ms.hold-=dt;if(ms.hold<=0)this.init();return;}
-      ms.t+=dt;var sp=75,first=false,all=true,self=this;
+      ms.t+=dt;var sp=75,first=false,all=true;
       ms.tr.forEach(function(m){
         if(m.done)return;all=false;
         var vx=sp,vy=0,b0=Math.floor(m.x/40),bb,L,j,c,dx,dy,d,R;
-        /* slide along the surface of any particle the molecule is touching */
-        for(bb=b0-1;bb<=b0+1;bb++){L=ms.buckets[bb];if(!L)continue;
-          for(j=0;j<L.length;j++){c=L[j];dx=m.x-c.x;dy=m.y-c.y;R=c.r+1.5;d=Math.sqrt(dx*dx+dy*dy);
-            if(d<R+0.8&&vx*dx+vy*dy<0){var nx=dx/d,ny=dy/d,t1x=-ny,t1y=nx,t2x=ny,t2y=-nx,tx,ty;
-              if(Math.abs(t1x-t2x)<0.08){if((t1y>0)===(dy>=0)){tx=t1x;ty=t1y;}else{tx=t2x;ty=t2y;}}
-              else if(t1x>t2x){tx=t1x;ty=t1y;}else{tx=t2x;ty=t2y;}
-              vx=sp*tx;vy=sp*ty;}}}
-        m.x+=vx*dt;m.y+=vy*dt+gauss()*Math.sqrt(2*16*dt);
-        m.y=clamp(m.y,ms.top+3,ms.bot-3);
-        for(var it=0;it<2;it++){
-          for(bb=b0-1;bb<=b0+1;bb++){L=ms.buckets[bb];if(!L)continue;
-            for(j=0;j<L.length;j++){c=L[j];dx=m.x-c.x;dy=m.y-c.y;R=c.r+1.5;var d2=dx*dx+dy*dy;
-              if(d2<R*R){d=Math.sqrt(d2)||0.01;m.x=c.x+dx/d*R;m.y=c.y+dy/d*R;}}}
-        }
+        for(bb=b0-1;bb<=b0+1;bb++){L=ms.buckets[bb];if(!L)continue;for(j=0;j<L.length;j++){c=L[j];dx=m.x-c.x;dy=m.y-c.y;R=c.r+1.5;d=Math.sqrt(dx*dx+dy*dy);
+          if(d<R+0.8&&vx*dx+vy*dy<0){var nx=dx/d,ny=dy/d,t1x=-ny,t1y=nx,t2x=ny,t2y=-nx,tx,ty;if(Math.abs(t1x-t2x)<0.08){if((t1y>0)===(dy>=0)){tx=t1x;ty=t1y;}else{tx=t2x;ty=t2y;}}else if(t1x>t2x){tx=t1x;ty=t1y;}else{tx=t2x;ty=t2y;}vx=sp*tx;vy=sp*ty;}}}
+        m.x+=vx*dt;m.y+=vy*dt+gauss()*Math.sqrt(2*16*dt);m.y=clamp(m.y,ms.top+3,ms.bot-3);
+        for(var it=0;it<2;it++){for(bb=b0-1;bb<=b0+1;bb++){L=ms.buckets[bb];if(!L)continue;for(j=0;j<L.length;j++){c=L[j];dx=m.x-c.x;dy=m.y-c.y;R=c.r+1.5;var d2=dx*dx+dy*dy;if(d2<R*R){d=Math.sqrt(d2)||0.01;m.x=c.x+dx/d*R;m.y=c.y+dy/d*R;}}}}
         m.ct+=dt;if(m.ct>0.35){if(m.x-m.cx<2){var dir=m.y<ms.top+14?1:(m.y>ms.bot-14?-1:(Math.random()<0.5?-1:1));m.y=clamp(m.y+dir*(5+Math.random()*5),ms.top+3,ms.bot-3);}m.cx=m.x;m.ct=0;}
         if(Math.hypot(m.x-m.lx,m.y-m.ly)>3){m.trail.push([m.x,m.y]);m.lx=m.x;m.ly=m.y;}
         if(m.x>=CW-14){m.done=true;if(!ms.snap)first=true;}
@@ -429,200 +465,116 @@ var MICRO={
       ms.circles.forEach(function(c){cx.beginPath();cx.arc(c.x,c.y,c.r,0,Math.PI*2);cx.fillStyle=pal.part;cx.fill();cx.strokeStyle=pal.partEdge;cx.lineWidth=1;cx.stroke();});
       cx.lineWidth=1.2;cx.strokeStyle=pal.mob;cx.globalAlpha=0.35;
       ms.tr.forEach(function(m){cx.beginPath();m.trail.forEach(function(p,i){if(i)cx.lineTo(p[0],p[1]);else cx.moveTo(p[0],p[1]);});cx.lineTo(m.x,m.y);cx.stroke();});
-      cx.globalAlpha=1;cx.fillStyle=pal.mob;
-      ms.tr.forEach(function(m){cx.beginPath();cx.arc(Math.min(m.x,CW-14),m.y,3.4,0,Math.PI*2);cx.fill();});
+      cx.globalAlpha=1;cx.fillStyle=pal.mob;ms.tr.forEach(function(m){cx.beginPath();cx.arc(Math.min(m.x,CW-14),m.y,3.4,0,Math.PI*2);cx.fill();});
       cx.fillStyle=pal.muted;cx.font='12px Arial';cx.fillText('All molecules start together →',10,18);
       if(ms.snap){var y=ms.bot+22;cx.strokeStyle=pal.tA;cx.lineWidth=2.5;cx.beginPath();cx.moveTo(ms.snap.min,y);cx.lineTo(ms.snap.max,y);cx.stroke();
         cx.beginPath();cx.moveTo(ms.snap.min,y-5);cx.lineTo(ms.snap.min,y+5);cx.moveTo(ms.snap.max,y-5);cx.lineTo(ms.snap.max,y+5);cx.stroke();
-        cx.fillStyle=pal.tA;cx.font='bold 12px Arial';cx.textAlign='right';cx.fillText(TT.packed?'spread when the first molecule leaves':'no spread: every path is the same',ms.snap.min-8,y+4);cx.textAlign='left';}
+        cx.fillStyle=pal.tA;cx.font='bold 12px Arial';cx.textAlign='right';cx.fillText(TT.packed?'spread when the first one leaves':'no spread: every path is the same',Math.max(170,ms.snap.min-8),y+4);cx.textAlign='left';}
     },
-    cap:function(){var TT=TYPES[type];return TT.packed?'<b>Multiple paths (eddy diffusion).</b> Molecules that start together weave around the particles. Some find nearly straight routes and some are forced on long detours, so they leave at different times. Bigger particles and uneven packing (higher λ) make the detours longer and more varied. The flow speed doesn’t change how different the paths are, which is why A is a flat line on the graph.':'<b>Multiple paths.</b> A capillary column is an open tube, so every molecule travels the same straight path and they all arrive together. There is no multiple-path broadening: A = 0. (The open tube still broadens bands in other ways; see C<sub>M</sub>.)';},
-    val:function(){return 'A = '+fmtH(P.HA)+(P.H>0?' ('+Math.round(P.HA/P.H*100)+'% of H)':'');}
+    cap:function(){var TT=TYPES[type];return TT.packed?'<b>Multiple paths (A).</b> Molecules that start together weave around the particles. Some find nearly straight routes, others are forced on detours, so they leave at different times (green bar). Bigger particles and uneven packing (higher λ) make the detours longer and more varied. Flow speed doesn’t change the paths, so A is flat on the graph.':'<b>Multiple paths (A).</b> A capillary is an open tube, so every molecule takes the same straight path and they arrive together: A = 0. The open tube still broadens bands in other ways; see C<sub>M</sub>.';},
+    val:function(){return 'A = '+fmtH(P.HA)+' ('+Math.round(P.HA/P.H*100)+'% of H)';}
   },
   B:{
-    init:function(){ms={m:[],c:40,top:84,bot:CH-40,t:0};for(var i=0;i<260;i++)ms.m.push({x:40+gauss()*3,y:ms.top+Math.random()*(ms.bot-ms.top)});},
+    init:function(){ms={m:[],c:40,top:84,bot:CH-36,t:0};for(var i=0;i<240;i++)ms.m.push({x:40+gauss()*3,y:ms.top+Math.random()*(ms.bot-ms.top)});},
     hDisp:function(){return clamp(0.0064*(CW-90)*(P.HB/REF[type].HB),0,0.3*(CW-90));},
-    step:function(dt){
-      var v=(CW-90)/5*speedFactor(),dz=v*dt,hd=this.hDisp(),sd=Math.sqrt(hd*dz);ms.c+=dz;ms.t+=dt;
-      ms.m.forEach(function(m){m.x+=dz+gauss()*sd;m.y+=gauss()*Math.max(sd,0.6);if(m.y<ms.top){m.y=2*ms.top-m.y;}if(m.y>ms.bot){m.y=2*ms.bot-m.y;}});
-      if(ms.c>CW-45)this.init();
-    },
-    draw:function(){
-      cx.fillStyle=pal.support;cx.fillRect(0,ms.top-10,CW,8);cx.fillRect(0,ms.bot+2,CW,8);
-      drawProfile(ms.m.map(function(m){return m.x;}),pal.tB,56);
+    step:function(dt){var v=(CW-90)/5*speedFactor(),dz=v*dt,sd=Math.sqrt(this.hDisp()*dz);ms.c+=dz;ms.t+=dt;
+      ms.m.forEach(function(m){m.x+=dz+gauss()*sd;m.y+=gauss()*Math.max(sd,0.6);if(m.y<ms.top)m.y=2*ms.top-m.y;if(m.y>ms.bot)m.y=2*ms.bot-m.y;});if(ms.c>CW-45)this.init();},
+    draw:function(){cx.fillStyle=pal.support;cx.fillRect(0,ms.top-10,CW,8);cx.fillRect(0,ms.bot+2,CW,8);drawProfile(ms.m.map(function(m){return m.x;}),pal.tB,56);
       cx.fillStyle=pal.mob;ms.m.forEach(function(m){cx.beginPath();cx.arc(m.x,m.y,2.6,0,Math.PI*2);cx.fill();});
-      cx.fillStyle=pal.muted;cx.font='12px Arial';
-      cx.fillText('Mobile phase flow →    time spent in the column so far: '+ms.t.toFixed(1)+' s',10,CH-12);
-    },
-    cap:function(){return '<b>Longitudinal diffusion.</b> Molecules wander randomly forward and backward the whole time they are in the column, so the band spreads in both directions. The longer they stay, the wider it gets, so slow flow makes this term large (B/u). Light carrier gases, small analytes, high temperature and low pressure all speed up diffusion (bigger D<sub>M</sub>) and make B larger. Liquids diffuse about 10,000 times more slowly than gases, which is why B matters little in HPLC except at very low flow.';},
-    val:function(){return 'B/u = '+fmtH(P.HB)+' ('+Math.round(P.HB/P.H*100)+'% of H). Try lowering u.';}
+      cx.fillStyle=pal.muted;cx.font='12px Arial';cx.fillText('flow →   time in the column: '+ms.t.toFixed(1)+' s',10,CH-10);},
+    cap:function(){return '<b>Longitudinal diffusion (B/u).</b> Molecules wander forward and backward the whole time they are in the column, so the band spreads both ways. The longer they stay, the wider it gets: slow flow makes this term large. A light carrier gas, small analyte, high temperature or low pressure speeds up diffusion (bigger D<sub>M</sub>) and raises B.';},
+    val:function(){return 'B/u = '+fmtH(P.HB)+' ('+Math.round(P.HB/P.H*100)+'% of H)';}
   },
   CS:{
-    init:function(){
-      var f=norm01(specOf('df'),VALS[type].df);
-      ms={m:[],top:76,surf:186,thick:6+64*f,t:0,mean:0};
-      var k=P.k,fs=k/(1+k);
-      for(var i=0;i<240;i++){var st=Math.random()<fs;ms.m.push({x:gauss()*3,y:st?ms.surf+Math.random()*ms.thick:this.upY(),s:st?'sta':'mob',ty:0});}
-    },
+    init:function(){var f=norm01(specOf('df'),VALS[type].df);ms={m:[],top:76,surf:Math.min(186,CH-90),thick:6+64*f,t:0,mean:0};var k=P.k,fs=k/(1+k),self=this;
+      for(var i=0;i<220;i++){var st=Math.random()<fs;ms.m.push({x:gauss()*3,y:st?ms.surf+Math.random()*ms.thick:self.upY(),s:st?'sta':'mob',ty:0});}},
     upY:function(){return Math.max(ms.top+4,ms.surf-6-(-Math.log(Math.random()+1e-9))*28);},
     tau:function(){return clamp(0.35*P.CS/REF[type].C,0.02,2.5);},
-    step:function(dt){
-      var f=norm01(specOf('df'),VALS[type].df),th=6+64*f,self=this;
+    step:function(dt){var f=norm01(specOf('df'),VALS[type].df),th=6+64*f,self=this;
       if(Math.abs(th-ms.thick)>0.1){ms.m.forEach(function(m){if(m.s==='sta')m.y=ms.surf+(m.y-ms.surf)*th/ms.thick;});ms.thick=th;}
-      var tau=this.tau(),k=P.k,Ds=ms.thick*ms.thick/(3*tau),v=260*speedFactor(),rin=k/tau,tv=900;
-      ms.t+=dt;var nsub=Math.max(1,Math.min(12,Math.ceil(dt*5/tau))),h=dt/nsub;
+      var tau=this.tau(),k=P.k,Ds=ms.thick*ms.thick/(3*tau),v=260*speedFactor(),rin=k/tau,tv=900;ms.t+=dt;
+      var nsub=Math.max(1,Math.min(12,Math.ceil(dt*5/tau))),h=dt/nsub;
       for(var sub=0;sub<nsub;sub++)ms.m.forEach(function(m){
         if(m.s==='sta'){m.y+=gauss()*Math.sqrt(2*Ds*h);var bot=ms.surf+ms.thick;if(m.y>bot)m.y=2*bot-m.y;if(m.y<ms.surf){m.s='up';m.y=ms.surf-1;m.ty=self.upY();}}
-        else{
-          m.x+=v*h;
-          if(m.s==='down'){m.y+=tv*h;if(m.y>=ms.surf){m.s='sta';m.y=ms.surf+Math.random()*ms.thick;}}
-          else if(m.s==='up'){m.y-=tv*h;if(m.y<=m.ty){m.y=m.ty;m.s='mob';}}
-          else if(Math.random()<rin*h)m.s='down';
-        }
-      });
-      var sx=0;ms.m.forEach(function(m){sx+=m.x;});ms.mean=sx/ms.m.length;
-      if(ms.mean>650||ms.t>18)this.init();
-    },
-    draw:function(){
-      var off=CW*0.32-ms.mean;
-      cx.fillStyle=pal.support;cx.fillRect(0,ms.top-10,CW,8);
-      cx.fillStyle=pal.film;cx.fillRect(0,ms.surf,CW,ms.thick);
-      cx.fillStyle=pal.support;cx.fillRect(0,ms.surf+ms.thick,CW,CH-(ms.surf+ms.thick));
-      cx.strokeStyle=pal.partEdge;cx.lineWidth=1;cx.beginPath();
-      for(var hx=((off%40)+40)%40-40;hx<CW+40;hx+=40){cx.moveTo(hx,CH-4);cx.lineTo(hx+16,ms.surf+ms.thick+6);}
-      cx.stroke();
+        else{m.x+=v*h;if(m.s==='down'){m.y+=tv*h;if(m.y>=ms.surf){m.s='sta';m.y=ms.surf+Math.random()*ms.thick;}}else if(m.s==='up'){m.y-=tv*h;if(m.y<=m.ty){m.y=m.ty;m.s='mob';}}else if(Math.random()<rin*h)m.s='down';}});
+      var sx=0;ms.m.forEach(function(m){sx+=m.x;});ms.mean=sx/ms.m.length;if(ms.mean>650||ms.t>18)this.init();},
+    draw:function(){var off=CW*0.4-ms.mean;cx.fillStyle=pal.support;cx.fillRect(0,ms.top-10,CW,8);cx.fillStyle=pal.film;cx.fillRect(0,ms.surf,CW,ms.thick);cx.fillStyle=pal.support;cx.fillRect(0,ms.surf+ms.thick,CW,CH-(ms.surf+ms.thick));
+      cx.strokeStyle=pal.partEdge;cx.lineWidth=1;cx.beginPath();for(var hx=((off%40)+40)%40-40;hx<CW+40;hx+=40){cx.moveTo(hx,CH-4);cx.lineTo(hx+16,ms.surf+ms.thick+6);}cx.stroke();
       cx.strokeStyle=pal.sta;cx.beginPath();cx.moveTo(0,ms.surf);cx.lineTo(CW,ms.surf);cx.stroke();
-      drawProfile(ms.m.map(function(m){return m.x+off;}),pal.tCS,48);
+      drawProfile(ms.m.map(function(m){return m.x+off;}),pal.tCS,52);
       ms.m.forEach(function(m){cx.fillStyle=m.s==='sta'?pal.sta:pal.mob;cx.beginPath();cx.arc(m.x+off,m.y,2.6,0,Math.PI*2);cx.fill();});
-      cx.fillStyle=pal.muted;cx.font='12px Arial';
-      cx.fillText('mobile phase, flowing →   (the view follows the band, so the column slides past to the left)',10,ms.top+16);
-      cx.fillStyle=pal.ink;cx.fillText('stationary phase (thickness exaggerated)',10,Math.min(CH-6,ms.surf+ms.thick+16));
-    },
-    cap:function(){return '<b>Mass transfer in the stationary phase.</b> Molecules that dissolve into the stationary phase (orange) stop moving until they diffuse back out to the surface. Meanwhile the molecules in the mobile phase (blue) are carried ahead, so the band smears out. A thicker film or slower diffusion in it (smaller D<sub>S</sub>) keeps molecules trapped longer, and faster flow carries the others farther in that time, so this term grows with u. In HPLC the bonded phase is only a few nanometers thick, so C<sub>S</sub> is usually tiny.';},
-    val:function(){return 'C\u209b·u = '+fmtH(P.HCS)+' ('+Math.round(P.HCS/P.H*100)+'% of H). Fraction of time spent in the stationary phase: k/(1+k) = '+Math.round(P.k/(1+P.k)*100)+'%.';}
+      cx.fillStyle=pal.muted;cx.font='12px Arial';cx.fillText('mobile phase →  (view follows the band)',10,ms.top+16);cx.fillStyle=pal.ink;cx.fillText('stationary phase (thickness exaggerated)',10,Math.min(CH-6,ms.surf+ms.thick+16));},
+    cap:function(){return '<b>Stationary phase mass transfer (C<sub>S</sub>·u).</b> Molecules that dissolve into the stationary phase (orange) stop until they diffuse back out, while those in the mobile phase (blue) move ahead, so the band smears. A thicker film or slower diffusion in it (smaller D<sub>S</sub>) traps them longer, and faster flow carries the others farther meanwhile. In HPLC the bonded phase is nanometers thick, so C<sub>S</sub> is tiny.';},
+    val:function(){return 'C<sub>S</sub>·u = '+fmtH(P.HCS)+' ('+Math.round(P.HCS/P.H*100)+'% of H); in the stationary phase '+Math.round(P.k/(1+P.k)*100)+'% of the time';}
   },
   CM:{
-    wDisp:function(){var TT=TYPES[type];return TT.packed?40+130*norm01(specOf('dp'),VALS[type].dp):44+130*norm01(specOf('id'),VALS[type].id);},
-    init:function(){var w=this.wDisp();ms={m:[],w:w,c:(92+CH-14)/2,t:0};for(var i=0;i<260;i++)ms.m.push({x:40+gauss()*1.5,y:ms.c-w/2+Math.random()*w});},
+    wDisp:function(){var TT=TYPES[type],mx=Math.min(170,CH-110);return TT.packed?40+(mx-40)*norm01(specOf('dp'),VALS[type].dp):44+(mx-44)*norm01(specOf('id'),VALS[type].id);},
+    init:function(){var w=this.wDisp();ms={m:[],w:w,c:(92+CH-14)/2,t:0};for(var i=0;i<240;i++)ms.m.push({x:40+gauss()*1.5,y:ms.c-w/2+Math.random()*w});},
     tau:function(){return clamp(1.5*P.CM/REF[type].C,0.015,6);},
-    step:function(dt){
-      var w=this.wDisp();if(Math.abs(w-ms.w)>0.1){ms.m.forEach(function(m){m.y=ms.c+(m.y-ms.c)*w/ms.w;});ms.w=w;}
-      var tau=this.tau(),Dy=w*w/(8*tau),vm=(CW-90)/5*speedFactor(),lo=ms.c-w/2,hi=ms.c+w/2;ms.t+=dt;var mx=0;
+    step:function(dt){var w=this.wDisp();if(Math.abs(w-ms.w)>0.1){ms.m.forEach(function(m){m.y=ms.c+(m.y-ms.c)*w/ms.w;});ms.w=w;}
+      var tau=this.tau(),Dy=w*w/(8*tau),vm=(CW-90)/5*speedFactor(),lo=ms.c-w/2,hi=ms.c+w/2;ms.t+=dt;
       ms.m.forEach(function(m){var z=2*(m.y-ms.c)/w;m.x+=1.5*vm*(1-z*z)*dt;m.y+=gauss()*Math.sqrt(2*Dy*dt);if(m.y<lo)m.y=2*lo-m.y;if(m.y>hi)m.y=2*hi-m.y;m.y=clamp(m.y,lo,hi);});
-      var xs=ms.m.map(function(m){return m.x;}).sort(function(a,b){return a-b;});
-      if(xs[Math.floor(xs.length*0.95)]>CW-16||ms.t>40)this.init();
-    },
-    draw:function(){
-      var TT=TYPES[type],lo=ms.c-ms.w/2,hi=ms.c+ms.w/2;
-      cx.fillStyle=TT.packed?pal.part:pal.support;cx.fillRect(0,lo-12,CW,12);cx.fillRect(0,hi,CW,12);
-      cx.strokeStyle=pal.tCM;cx.lineWidth=1.5;cx.globalAlpha=0.7;
-      for(var i=0;i<=8;i++){var y=lo+ms.w*i/8,z=2*(y-ms.c)/ms.w,len=46*(1-z*z);if(len<1)continue;cx.beginPath();cx.moveTo(12,y);cx.lineTo(12+len,y);cx.lineTo(12+len-5,y-3);cx.moveTo(12+len,y);cx.lineTo(12+len-5,y+3);cx.stroke();}
-      cx.globalAlpha=1;
-      drawProfile(ms.m.map(function(m){return m.x;}),pal.tCM,48);
-      cx.fillStyle=pal.mob;ms.m.forEach(function(m){cx.beginPath();cx.arc(m.x,m.y,2.5,0,Math.PI*2);cx.fill();});
-      cx.fillStyle=pal.muted;cx.font='12px Arial';
-      cx.fillText(TT.packed?'channel between two particles (wider for bigger particles)':'across the open tube (width = inner diameter)',70,lo-18);
-    },
-    cap:function(){var TT=TYPES[type];return '<b>Mass transfer in the mobile phase.</b> The mobile phase moves fastest in the middle of '+(TT.packed?'each channel between particles':'the tube')+' and hardly moves near the '+(TT.packed?'particle surfaces':'wall')+' (arrows). Molecules escape a fast or slow stream only by diffusing sideways, so the band stretches into an arrow shape until diffusion evens it out. A wider '+(TT.packed?'channel (bigger particles)':'tube')+' or slower diffusion (smaller D<sub>M</sub>) lets it stretch more, and faster flow makes it worse, so this term grows with u. This is why small particles and narrow capillaries give sharp peaks.';},
-    val:function(){return 'C\u2098·u = '+fmtH(P.HCM)+' ('+Math.round(P.HCM/P.H*100)+'% of H).';}
+      var xs=ms.m.map(function(m){return m.x;}).sort(function(a,b){return a-b;});if(xs[Math.floor(xs.length*0.95)]>CW-16||ms.t>40)this.init();},
+    draw:function(){var TT=TYPES[type],lo=ms.c-ms.w/2,hi=ms.c+ms.w/2;cx.fillStyle=TT.packed?pal.part:pal.support;cx.fillRect(0,lo-12,CW,12);cx.fillRect(0,hi,CW,12);
+      cx.strokeStyle=pal.tCM;cx.lineWidth=1.5;cx.globalAlpha=0.7;for(var i=0;i<=8;i++){var y=lo+ms.w*i/8,z=2*(y-ms.c)/ms.w,len=46*(1-z*z);if(len<1)continue;cx.beginPath();cx.moveTo(12,y);cx.lineTo(12+len,y);cx.lineTo(12+len-5,y-3);cx.moveTo(12+len,y);cx.lineTo(12+len-5,y+3);cx.stroke();}
+      cx.globalAlpha=1;drawProfile(ms.m.map(function(m){return m.x;}),pal.tCM,52);cx.fillStyle=pal.mob;ms.m.forEach(function(m){cx.beginPath();cx.arc(m.x,m.y,2.5,0,Math.PI*2);cx.fill();});
+      cx.fillStyle=pal.muted;cx.font='12px Arial';cx.fillText(TT.packed?'channel between particles (wider for bigger particles)':'across the tube (width = inner diameter)',70,lo-16);},
+    cap:function(){var TT=TYPES[type];return '<b>Mobile phase mass transfer (C<sub>M</sub>·u).</b> The mobile phase moves fastest in the middle of '+(TT.packed?'each channel between particles':'the tube')+' and hardly at all near the '+(TT.packed?'particles':'wall')+' (arrows). Molecules leave a fast or slow stream only by diffusing sideways, so the band stretches until diffusion evens it out. A wider '+(TT.packed?'channel (bigger particles)':'tube')+' or slower diffusion stretches it more, and faster flow makes it worse.';},
+    val:function(){return 'C<sub>M</sub>·u = '+fmtH(P.HCM)+' ('+Math.round(P.HCM/P.H*100)+'% of H)';}
   }
 };
-function drawProfile(xs,color,maxH){
-  var bw=5,nb=Math.ceil(CW/bw),h=new Array(nb).fill(0),i;
-  xs.forEach(function(x){var b=Math.floor(x/bw);if(b>=0&&b<nb)h[b]++;});
-  var sm=new Array(nb).fill(0);for(i=0;i<nb;i++){for(var j=-3;j<=3;j++){var b=i+j;if(b>=0&&b<nb)sm[i]+=h[b]*Math.exp(-j*j/4);}}
-  var mx=Math.max.apply(null,sm)||1,base=12+maxH;
-  cx.beginPath();cx.moveTo(0,base);for(i=0;i<nb;i++)cx.lineTo(i*bw+bw/2,base-sm[i]/mx*(maxH-14));cx.lineTo(CW,base);cx.closePath();
-  cx.globalAlpha=0.22;cx.fillStyle=color;cx.fill();cx.globalAlpha=1;cx.strokeStyle=color;cx.lineWidth=1.6;cx.stroke();
-  cx.fillStyle=pal.muted;cx.font='11px Arial';cx.fillText('band profile',CW-80,22);
-}
-function setMode(m){mode=m;document.querySelectorAll('[role=tab]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-m')===m?'true':'false');});MICRO[mode].init();microText();drawMicro();}
-function microText(){document.getElementById('mcap').innerHTML=MICRO[mode].cap();document.getElementById('mval').innerHTML=MICRO[mode].val().replace('C\u209b','C<sub>S</sub>').replace('C\u2098','C<sub>M</sub>');}
+function capText(){$('cap').innerHTML='<div style="font-weight:700;margin-bottom:3px;font-variant-numeric:tabular-nums">'+MICRO[mode].val()+'</div>'+MICRO[mode].cap();}
+function setMode(m){mode=m;$('mname').textContent={A:'Multiple paths',B:'Longitudinal diffusion',CS:'Stationary phase',CM:'Mobile phase'}[m];document.querySelectorAll('.mtabs [role=tab]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-m')===m?'true':'false');});if(sizeMicro()){MICRO[mode].init();drawMicro();}capText();}
 function drawMicro(){cx.clearRect(0,0,CW,CH);MICRO[mode].draw();}
+document.querySelectorAll('.mtabs [role=tab]').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-m'));});});
+$('capBtn').addEventListener('click',function(){var c=$('cap'),on=!c.classList.contains('on');c.classList.toggle('on',on);this.setAttribute('aria-expanded',on?'true':'false');this.textContent=on?'Hide':'Explain';});
 
-/* ================= 3D column view ================= */
-var c3=document.getElementById('c3'),V3=null;
-var CAM0={yaw:-0.16,pitch:0.30,dist:34},cam={yaw:CAM0.yaw,pitch:CAM0.pitch,dist:CAM0.dist};
+/* ================= 3D column ================= */
+var c3=$('c3'),V3=null,CAM0={yaw:-0.16,pitch:0.30,dist:34},cam={yaw:CAM0.yaw,pitch:CAM0.pitch,dist:CAM0.dist};
+function hexOf(css){var c=document.createElement('canvas').getContext('2d');c.fillStyle=css;var h=c.fillStyle;if(h[0]==='#')return parseInt(h.slice(1),16);var m=h.match(/\d+/g);return (m[0]<<16)|(m[1]<<8)|(+m[2]);}
 function init3D(){
+  if(V3||V3===false)return;
   if(!window.THREE){fail3D();return;}
-  var R;
-  try{R=new THREE.WebGLRenderer({canvas:c3,antialias:true,alpha:true});}catch(e){fail3D();return;}
+  var R;try{R=new THREE.WebGLRenderer({canvas:c3,antialias:true,alpha:true});}catch(e){fail3D();return;}
   R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
   var scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(34,1,0.1,300);
-  scene.add(new THREE.HemisphereLight(0xffffff,0x556677,0.85));
-  var dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(6,12,10);scene.add(dl);
-  var dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-8,-4,6);scene.add(dl2);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x556677,0.85));var dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(6,12,10);scene.add(dl);var dl2=new THREE.DirectionalLight(0xffffff,0.25);dl2.position.set(-8,-4,6);scene.add(dl2);
   var col=new THREE.Group();scene.add(col);
-  var NM=700,pos=new Float32Array(NM*3),colr=new Float32Array(NM*3);
-  var pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(colr,3));
-  var tc=document.createElement('canvas');tc.width=tc.height=64;var tg=tc.getContext('2d'),gr=tg.createRadialGradient(32,32,0,32,32,32);
-  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.45,'rgba(255,255,255,0.95)');gr.addColorStop(0.7,'rgba(255,255,255,0.35)');gr.addColorStop(1,'rgba(255,255,255,0)');tg.fillStyle=gr;tg.fillRect(0,0,64,64);
-  var pm=new THREE.PointsMaterial({size:0.42,map:new THREE.CanvasTexture(tc),vertexColors:true,transparent:true,depthTest:false,depthWrite:false,sizeAttenuation:true});
-  var pts=new THREE.Points(pg,pm);pts.renderOrder=10;scene.add(pts);
-  var mol=[];for(var i=0;i<NM;i++)mol.push({g:gauss(),th:Math.random()*Math.PI*2,rr:Math.sqrt(Math.random()),s:false,ph:Math.random()*6});
-  V3={R:R,scene:scene,camera:camera,col:col,pts:pts,pos:pos,colr:colr,mol:mol,NM:NM,band:-11.5,Lc:26,radius:3};
+  var NM=600,pos=new Float32Array(NM*3),colr=new Float32Array(NM*3),pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(colr,3));
+  var tc=document.createElement('canvas');tc.width=tc.height=64;var tg=tc.getContext('2d'),gr=tg.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.45,'rgba(255,255,255,0.95)');gr.addColorStop(0.7,'rgba(255,255,255,0.35)');gr.addColorStop(1,'rgba(255,255,255,0)');tg.fillStyle=gr;tg.fillRect(0,0,64,64);
+  var pts=new THREE.Points(pg,new THREE.PointsMaterial({size:0.42,map:new THREE.CanvasTexture(tc),vertexColors:true,transparent:true,depthTest:false,depthWrite:false}));pts.renderOrder=10;scene.add(pts);
+  var mol=[];for(var i=0;i<NM;i++)mol.push({g:gauss(),th:Math.random()*Math.PI*2,rr:Math.sqrt(Math.random()),s:false});
+  V3={R:R,scene:scene,camera:camera,col:col,pts:pts,pos:pos,colr:colr,mol:mol,NM:NM,band:-12.2,Lc:26,radius:3};
   buildColumn();resize3D();
 }
-function fail3D(){var v=c3.parentNode;c3.style.display='none';var f=document.createElement('p');f.className='fallback';f.textContent='The 3D view needs WebGL, which this browser doesn’t provide. Everything else on the page still works.';v.insertBefore(f,v.firstChild);}
-function hexOf(css){var c=document.createElement('canvas').getContext('2d');c.fillStyle=css;var h=c.fillStyle;if(h[0]==='#')return parseInt(h.slice(1),16);var m=h.match(/\d+/g);return (m[0]<<16)|(m[1]<<8)|(+m[2]);}
-function disposeGroup(g){while(g.children.length){var o=g.children.pop();if(o.geometry)o.geometry.dispose();if(o.material){if(o.material.dispose)o.material.dispose();}}}
+function fail3D(){V3=false;c3.style.display='none';var f=document.createElement('p');f.className='fallback';f.textContent='The 3D view needs WebGL, which this browser doesn’t provide. The other views still work.';$('v-col').insertBefore(f,c3);}
+function disposeGroup(g){while(g.children.length){var o=g.children.pop();if(o.geometry)o.geometry.dispose();if(o.material&&o.material.dispose)o.material.dispose();}}
 function buildColumn(){
   if(!V3)return;
   var TT=TYPES[type],v=VALS[type],col=V3.col,L=V3.Lc,dark=window.matchMedia('(prefers-color-scheme: dark)').matches;
-  disposeGroup(col);
+  disposeGroup(col);V3.cm=null;
   var R=TT.packed?3.2:1.3+2.0*norm01(specOf('id'),v.id);V3.radius=R;
-  var glassMat=new THREE.MeshPhongMaterial({color:dark?0x9fc4e8:0x7fa8cf,transparent:true,opacity:dark?0.10:0.13,side:THREE.DoubleSide,depthWrite:false,shininess:90});
-  var glass=new THREE.Mesh(new THREE.CylinderGeometry(R+0.06,R+0.06,L,64,1,true).rotateZ(-Math.PI/2),glassMat);col.add(glass);
+  col.add(new THREE.Mesh(new THREE.CylinderGeometry(R+0.06,R+0.06,L,64,1,true).rotateZ(-Math.PI/2),new THREE.MeshPhongMaterial({color:dark?0x9fc4e8:0x7fa8cf,transparent:true,opacity:dark?0.10:0.13,side:THREE.DoubleSide,depthWrite:false,shininess:90})));
   var ringMat=new THREE.LineBasicMaterial({color:dark?0x9fb0c0:0x566676,transparent:true,opacity:0.6});
-  [-L/2,L/2].forEach(function(x){var pts=[];for(var i=0;i<=64;i++){var a=i/64*Math.PI*2;pts.push(new THREE.Vector3(x,Math.cos(a)*(R+0.06),Math.sin(a)*(R+0.06)));}col.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),ringMat));});
+  [-L/2,L/2].forEach(function(x){var p=[];for(var i=0;i<=64;i++){var a=i/64*Math.PI*2;p.push(new THREE.Vector3(x,Math.cos(a)*(R+0.06),Math.sin(a)*(R+0.06)));}col.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p),ringMat));});
   if(TT.packed){
-    var f=norm01(specOf('dp'),v.dp),r=0.34+0.5*f,irr=clamp((v.lam-0.3)/1.7,0,1);
-    var voids=[],nv=Math.round(irr*5);
+    var f=norm01(specOf('dp'),v.dp),r=0.34+0.5*f,irr=clamp((v.lam-0.3)/1.7,0,1),voids=[],nv=Math.round(irr*5);
     for(var q=0;q<nv;q++){var a=Math.random()*Math.PI*2,rad=Math.random()*(R-1.2);voids.push({y:Math.cos(a)*rad,z:-Math.abs(Math.sin(a)*rad),rad:r*(1.1+1.3*Math.random()),x0:-L/2+Math.random()*L*0.5,x1:-L/2+L*(0.5+Math.random()*0.5)});}
-    /* close-packed lattice, loosened and disturbed according to λ */
     var list=[],rp=r*1.04,jit=0.28*r*irr,dz=2*Math.sqrt(6)/3*rp;
-    for(var k=0;k*dz<=R;k++){
-      var z=-k*dz;
-      for(var j=-Math.ceil(R/(Math.sqrt(3)*rp))-1;j*Math.sqrt(3)*rp<=R+rp;j++){
-        var y=Math.sqrt(3)*(j+(k%3)/3)*rp;
-        for(var i=Math.floor(-L/(2*2*rp))-1;i*2*rp<=L/2+rp;i++){
-          var x=(2*i+((j+k)%2+2)%2)*rp;
-          if(Math.random()<0.02+0.12*irr)continue;
-          var ri=r*(1+(Math.random()*2-1)*0.35*irr);
-          var px=x+(Math.random()*2-1)*jit,py=y+(Math.random()*2-1)*jit,pz=z+(Math.random()*2-1)*jit;
-          if(Math.abs(px)>L/2-ri*0.6)continue;
-          if(Math.hypot(py,pz)>R-ri*0.9)continue;
-          if(pz>0.2)continue;
-          var bad=false;
-          for(var w=0;w<voids.length;w++){var vd=voids[w];if(px>vd.x0&&px<vd.x1&&Math.hypot(py-vd.y,pz-vd.z)<vd.rad+ri*0.5){bad=true;break;}}
-          if(bad)continue;
-          list.push({x:px,y:py,z:pz,r:ri*0.97});
-        }
-      }
-    }
-    var pmat=new THREE.MeshStandardMaterial({color:TT.liquid?(dark?0x8d9cab:0xdde3ea):(dark?0x9c8f78:0xdcccaa),roughness:0.6,metalness:0.0});
-    var im=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,10),pmat,list.length),m4=new THREE.Matrix4();
-    list.forEach(function(s,i){m4.makeScale(s.r,s.r,s.r);m4.setPosition(s.x,s.y,s.z);im.setMatrixAt(i,m4);});
-    col.add(im);
+    for(var k=0;k*dz<=R;k++){var z=-k*dz;for(var j=-Math.ceil(R/(Math.sqrt(3)*rp))-1;j*Math.sqrt(3)*rp<=R+rp;j++){var y=Math.sqrt(3)*(j+(k%3)/3)*rp;
+      for(var i=Math.floor(-L/(4*rp))-1;i*2*rp<=L/2+rp;i++){var x=(2*i+((j+k)%2+2)%2)*rp;if(Math.random()<0.02+0.12*irr)continue;var ri=r*(1+(Math.random()*2-1)*0.35*irr);
+        var px=x+(Math.random()*2-1)*jit,py=y+(Math.random()*2-1)*jit,pz=z+(Math.random()*2-1)*jit;if(Math.abs(px)>L/2-ri*0.6||Math.hypot(py,pz)>R-ri*0.9||pz>0.2)continue;
+        var bad=false;for(var w=0;w<voids.length;w++){var vd=voids[w];if(px>vd.x0&&px<vd.x1&&Math.hypot(py-vd.y,pz-vd.z)<vd.rad+ri*0.5){bad=true;break;}}if(bad)continue;list.push({x:px,y:py,z:pz,r:ri*0.97});}}}
+    var im=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,10),new THREE.MeshStandardMaterial({color:TT.liquid?(dark?0x8d9cab:0xdde3ea):(dark?0x9c8f78:0xdcccaa),roughness:0.6}),list.length),m4=new THREE.Matrix4();
+    list.forEach(function(s,i){m4.makeScale(s.r,s.r,s.r);m4.setPosition(s.x,s.y,s.z);im.setMatrixAt(i,m4);});col.add(im);
   }else{
     var t=0.05+0.55*norm01(specOf('df'),v.df);V3.film=t;
-    var filmMat=new THREE.MeshStandardMaterial({color:dark?0xf0a85a:0xd9822b,transparent:true,opacity:dark?0.45:0.55,side:THREE.DoubleSide,roughness:0.7,depthWrite:false});
-    col.add(new THREE.Mesh(new THREE.CylinderGeometry(R,R,L,64,1,true,Math.PI/2,Math.PI).rotateZ(-Math.PI/2),filmMat));
-    var filmIn=new THREE.MeshStandardMaterial({color:dark?0xf6c48e:0xe8a35e,transparent:true,opacity:0.35,side:THREE.DoubleSide,depthWrite:false});
-    col.add(new THREE.Mesh(new THREE.CylinderGeometry(R-t,R-t,L,64,1,true,Math.PI/2,Math.PI).rotateZ(-Math.PI/2),filmIn));
-    var wall=new THREE.MeshStandardMaterial({color:dark?0x6c7c8c:0xb8c4d0,transparent:true,opacity:0.5,side:THREE.DoubleSide,depthWrite:false});
-    col.add(new THREE.Mesh(new THREE.CylinderGeometry(R+0.06,R+0.06,L,64,1,true,Math.PI/2,Math.PI).rotateZ(-Math.PI/2),wall));
+    col.add(new THREE.Mesh(new THREE.CylinderGeometry(R,R,L,64,1,true,Math.PI/2,Math.PI).rotateZ(-Math.PI/2),new THREE.MeshStandardMaterial({color:dark?0xf0a85a:0xd9822b,transparent:true,opacity:dark?0.45:0.55,side:THREE.DoubleSide,roughness:0.7,depthWrite:false})));
+    col.add(new THREE.Mesh(new THREE.CylinderGeometry(R-t,R-t,L,64,1,true,Math.PI/2,Math.PI).rotateZ(-Math.PI/2),new THREE.MeshStandardMaterial({color:dark?0xf6c48e:0xe8a35e,transparent:true,opacity:0.35,side:THREE.DoubleSide,depthWrite:false})));
   }
-  var arrowMat=new THREE.MeshBasicMaterial({color:dark?0x7fb0dc:0x326b9e});
-  var ar=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.1,20).rotateZ(-Math.PI/2),arrowMat);ar.position.set(-L/2-1.6,0,0);col.add(ar);
-  var sh=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,1.6,12).rotateZ(-Math.PI/2),arrowMat);sh.position.set(-L/2-2.8,0,0);col.add(sh);
-  setLegend();render3D(0,true);
-}
-function setLegend(){
-  var TT=TYPES[type];
-  document.getElementById('ovlTitle').textContent=TT.packed?'Magnified section of the packed bed (front half cut away)':'Magnified section of the capillary (front half of the wall cut away)';
-  document.getElementById('ovlLegend').innerHTML='<span><i class="dot" style="background:var(--mob)"></i>in the mobile phase</span><span><i class="dot" style="background:var(--sta)"></i>in the stationary phase</span>';
-  document.getElementById('cap3').textContent=TT.packed?'The analyte band (dots) enters on the left and spreads as it moves through the packed particles. Change the particle size, the packing, the flow or anything else and watch how wide the band is by the time it leaves. Drag to rotate.':'The analyte band (dots) travels through the open tube; the orange layer is the stationary phase film coating the wall (its thickness is exaggerated). Change the film, the diameter, the flow or the gas and watch how wide the band is by the time it leaves. Drag to rotate.';
+  var am=new THREE.MeshBasicMaterial({color:dark?0x7fb0dc:0x326b9e});var ar=new THREE.Mesh(new THREE.ConeGeometry(0.45,1.1,20).rotateZ(-Math.PI/2),am);ar.position.set(-L/2-1.6,0,0);col.add(ar);
+  var sh=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,1.6,12).rotateZ(-Math.PI/2),am);sh.position.set(-L/2-2.8,0,0);col.add(sh);
+  $('ovl3').innerHTML=(TT.packed?'Packed bed, magnified (front half cut away)':'Capillary, magnified; orange = stationary phase film')+'<br><span><i class="dot" style="background:var(--mob)"></i>mobile phase</span> <span style="margin-left:6px"><i class="dot" style="background:var(--sta)"></i>stationary phase</span>';
 }
 function resize3D(){if(!V3)return;var w=c3.clientWidth,h=c3.clientHeight;if(!w||!h)return;V3.R.setSize(w,h,false);V3.camera.aspect=w/h;V3.camera.updateProjectionMatrix();}
 function placeCam(){var c=V3.camera,d=cam.dist*Math.max(1,1.5/c.aspect);c.position.set(d*Math.cos(cam.pitch)*Math.sin(cam.yaw),d*Math.sin(cam.pitch),d*Math.cos(cam.pitch)*Math.cos(cam.yaw));c.lookAt(0,0,0);}
@@ -630,73 +582,70 @@ function render3D(dt,still){
   if(!V3||!P)return;
   var TT=TYPES[type],L=V3.Lc,x0=-L/2+0.8,x1=L/2-0.8;
   if(!still){V3.band+=dt*3.0*speedFactor();if(V3.band>x1+2)V3.band=x0;}
-  var frac=clamp((V3.band-x0)/(x1-x0),0,1),send=clamp(2.0*Math.sqrt(P.H/REF[type].H),0.25,9),sg=Math.sqrt(0.06+(send*send-0.06)*frac);
-  if(!V3.cm){V3.cm=new THREE.Color(hexOf(pal.mob));V3.cs=new THREE.Color(hexOf(pal.sta));}var mob=V3.cm,sta=V3.cs,fs=P.k/(1+P.k),R=V3.radius,film=V3.film||0;
+  if(!V3.cm){V3.cm=new THREE.Color(hexOf(pal.mob));V3.cs=new THREE.Color(hexOf(pal.sta));}
+  var frac=clamp((V3.band-x0)/(x1-x0),0,1),send=clamp(2.0*Math.sqrt(P.H/REF[type].H),0.25,9),sg=Math.sqrt(0.06+(send*send-0.06)*frac),fs=P.k/(1+P.k),R=V3.radius,film=V3.film||0;
   for(var i=0;i<V3.NM;i++){
     var m=V3.mol[i];
-    if(!still){m.g+=-m.g*dt/1.2+Math.sqrt(2*dt/1.2)*gauss();m.th+=gauss()*Math.sqrt(dt)*0.7;m.rr=clamp(m.rr+gauss()*Math.sqrt(dt)*0.12,0.02,1);
-      var rate=m.s?1/0.7:fs/(1-fs+1e-9)/0.7;if(Math.random()<rate*dt)m.s=!m.s;}
+    if(!still){m.g+=-m.g*dt/1.2+Math.sqrt(2*dt/1.2)*gauss();m.th+=gauss()*Math.sqrt(dt)*0.7;m.rr=clamp(m.rr+gauss()*Math.sqrt(dt)*0.12,0.02,1);var rate=m.s?1/0.7:fs/(1-fs+1e-9)/0.7;if(Math.random()<rate*dt)m.s=!m.s;}
     var x=V3.band+sg*m.g,y,z;
     if(TT.packed){var rad=m.rr*(R-0.15);y=Math.cos(m.th)*rad;z=Math.sin(m.th)*rad;if(m.s&&z>0)z=-z;}
     else if(m.s){var th=Math.PI/2+((m.th%(Math.PI*2))+Math.PI*2)%Math.PI,rs=R-film*(0.15+0.7*((i*0.618)%1));y=Math.sin(th)*rs;z=Math.cos(th)*rs;}
     else{var rad2=m.rr*(R-film-0.1);y=Math.cos(m.th)*rad2;z=Math.sin(m.th)*rad2;}
-    var vis=x>-L/2&&x<L/2;
-    V3.pos[i*3]=vis?x:9999;V3.pos[i*3+1]=y;V3.pos[i*3+2]=z;
-    var c=m.s?sta:mob;V3.colr[i*3]=c.r;V3.colr[i*3+1]=c.g;V3.colr[i*3+2]=c.b;
+    V3.pos[i*3]=(x>-L/2&&x<L/2)?x:9999;V3.pos[i*3+1]=y;V3.pos[i*3+2]=z;var c=m.s?V3.cs:V3.cm;V3.colr[i*3]=c.r;V3.colr[i*3+1]=c.g;V3.colr[i*3+2]=c.b;
   }
   V3.pts.geometry.attributes.position.needsUpdate=true;V3.pts.geometry.attributes.color.needsUpdate=true;
   placeCam();V3.R.render(V3.scene,V3.camera);
 }
-(function controls3D(){
-  var drag=null;
+(function(){
+  var drag=null;function rr(){if(!running)render3D(0,true);}
   c3.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY,t:e.pointerType};c3.setPointerCapture(e.pointerId);});
-  c3.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;cam.yaw-=dx*0.008;if(drag.t==='mouse'||drag.t==='pen')cam.pitch=clamp(cam.pitch+dy*0.006,-1.25,1.25);if(!running)render3D(0,true);});
+  c3.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;cam.yaw-=dx*0.008;if(drag.t!=='touch')cam.pitch=clamp(cam.pitch+dy*0.006,-1.25,1.25);rr();});
   c3.addEventListener('pointerup',function(){drag=null;});c3.addEventListener('pointercancel',function(){drag=null;});
-  c3.addEventListener('keydown',function(e){var h=true;if(e.key==='ArrowLeft')cam.yaw+=0.1;else if(e.key==='ArrowRight')cam.yaw-=0.1;else if(e.key==='ArrowUp')cam.pitch=clamp(cam.pitch+0.08,-1.25,1.25);else if(e.key==='ArrowDown')cam.pitch=clamp(cam.pitch-0.08,-1.25,1.25);else if(e.key==='+'||e.key==='=')cam.dist=clamp(cam.dist*0.9,12,60);else if(e.key==='-')cam.dist=clamp(cam.dist*1.1,12,60);else h=false;if(h){e.preventDefault();if(!running)render3D(0,true);}});
-  document.getElementById('zin').addEventListener('click',function(){cam.dist=clamp(cam.dist*0.85,12,60);if(!running)render3D(0,true);});
-  document.getElementById('zout').addEventListener('click',function(){cam.dist=clamp(cam.dist*1.18,12,60);if(!running)render3D(0,true);});
-  document.getElementById('vreset').addEventListener('click',function(){cam={yaw:CAM0.yaw,pitch:CAM0.pitch,dist:CAM0.dist};if(!running)render3D(0,true);});
+  c3.addEventListener('keydown',function(e){var h=true;if(e.key==='ArrowLeft')cam.yaw+=0.1;else if(e.key==='ArrowRight')cam.yaw-=0.1;else if(e.key==='ArrowUp')cam.pitch=clamp(cam.pitch+0.08,-1.25,1.25);else if(e.key==='ArrowDown')cam.pitch=clamp(cam.pitch-0.08,-1.25,1.25);else if(e.key==='+'||e.key==='=')cam.dist=clamp(cam.dist*0.9,12,60);else if(e.key==='-')cam.dist=clamp(cam.dist*1.1,12,60);else h=false;if(h){e.preventDefault();rr();}});
+  $('zin').addEventListener('click',function(){cam.dist=clamp(cam.dist*0.85,12,60);rr();});
+  $('zout').addEventListener('click',function(){cam.dist=clamp(cam.dist*1.18,12,60);rr();});
+  $('vreset').addEventListener('click',function(){cam={yaw:CAM0.yaw,pitch:CAM0.pitch,dist:CAM0.dist};rr();});
 })();
 
-/* ================= main update and animation loop ================= */
+/* ================= views and main loop ================= */
+var view='graph';
+function setView(v){
+  view=v;document.querySelectorAll('.seg [data-view]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-view')===v?'true':'false');});
+  ['graph','col','zoom','nums'].forEach(function(n){$('v-'+n).classList.toggle('on',n===v);});
+  if(v==='graph')drawPlot();
+  if(v==='col'){init3D();resize3D();render3D(0,true);}
+  if(v==='zoom'){if(sizeMicro()){MICRO[mode].init();drawMicro();}capText();}
+  if(v==='nums')updateNums();
+}
+document.querySelectorAll('.seg [data-view]').forEach(function(b){b.addEventListener('click',function(){setView(b.getAttribute('data-view'));});});
 function update(rebuild){
   P=physics(type,VALS[type]);
-  drawPlot(P);updateReadouts();
-  if(rebuild){buildColumn();if(mode==='A')MICRO.A.init();}
-  microText();
-  if(!running){render3D(0,true);drawMicro();}
+  updateLive();updateDM();drawPlot();updateNums();
+  if(view==='col'&&rebuild)buildColumn();else if(rebuild&&V3)V3.dirty=true;
+  if(view==='zoom'){if(rebuild&&mode==='A')MICRO.A.init();capText();}
+  if(!running){if(view==='col')render3D(0,true);if(view==='zoom')drawMicro();}
 }
-var running=!window.matchMedia('(prefers-reduced-motion: reduce)').matches,last=0,visible3=true,visibleM=true;
-var playBtn=document.getElementById('play');
-function setPlay(on){running=on;playBtn.textContent=on?'Pause':'Play';playBtn.setAttribute('aria-pressed',on?'false':'true');if(on){last=0;requestAnimationFrame(loop);}}
-playBtn.addEventListener('click',function(){setPlay(!running);});
+var running=!window.matchMedia('(prefers-reduced-motion: reduce)').matches,last=0;
 function loop(ts){
   if(!running)return;
   var dt=last?Math.min(0.05,(ts-last)/1000):0;last=ts;
   if(!document.hidden){
-    if(visible3)render3D(dt,false);
-    if(visibleM){MICRO[mode].step(dt);drawMicro();}
+    if(view==='col'&&V3){if(V3.dirty){V3.dirty=false;buildColumn();}render3D(dt,false);}
+    if(view==='zoom'){MICRO[mode].step(dt);drawMicro();}
   }
   requestAnimationFrame(loop);
 }
-if('IntersectionObserver' in window){
-  new IntersectionObserver(function(es){es.forEach(function(e){visible3=e.isIntersecting;});}).observe(c3);
-  new IntersectionObserver(function(es){es.forEach(function(e){visibleM=e.isIntersecting;});}).observe(cm);
-}
-document.querySelectorAll('button[data-type]').forEach(function(b){b.addEventListener('click',function(){
-  type=b.getAttribute('data-type');
-  document.querySelectorAll('button[data-type]').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});
-  buildParams();P=physics(type,VALS[type]);if(V3)V3.band=-V3.Lc/2+0.8;update(true);MICRO[mode].init();if(!running)drawMicro();
-});});
-document.querySelectorAll('[role=tab]').forEach(function(b){b.addEventListener('click',function(){setMode(b.getAttribute('data-m'));});});
-document.getElementById('yfix').addEventListener('click',function(){yMode='fixed';this.setAttribute('aria-pressed','true');document.getElementById('yfit').setAttribute('aria-pressed','false');drawPlot(P);});
-document.getElementById('yfit').addEventListener('click',function(){yMode='fit';this.setAttribute('aria-pressed','true');document.getElementById('yfix').setAttribute('aria-pressed','false');drawPlot(P);});
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){readPal();if(V3)V3.cm=null;buildColumn();drawPlot(P);if(!running)drawMicro();});
-var ro=new ResizeObserver(function(){resize3D();sizeMicro();MICRO[mode].init();if(!running){render3D(0,true);drawMicro();}});
-ro.observe(c3);ro.observe(cm);
-
-buildParams();P=physics(type,VALS[type]);sizeMicro();init3D();MICRO[mode].init();update(false);
-if(running)requestAnimationFrame(loop);else{playBtn.textContent='Play';playBtn.setAttribute('aria-pressed','true');}
+function setPlay(on){running=on;document.querySelectorAll('.playbtn').forEach(function(b){b.textContent=on?'Pause':'Play';b.setAttribute('aria-pressed',on?'false':'true');});if(on){last=0;requestAnimationFrame(loop);}}
+document.querySelectorAll('.playbtn').forEach(function(b){b.addEventListener('click',function(){setPlay(!running);});});
+$('type').addEventListener('change',function(){type=this.value;if(pgroup==='A'&&!TYPES[type].packed){}buildPanel();P=physics(type,VALS[type]);if(V3){V3.band=-V3.Lc/2+0.8;buildColumn();}update(false);if(view==='zoom'&&sizeMicro()){MICRO[mode].init();drawMicro();}capText();});
+var guide=$('guide');$('guideBtn').addEventListener('click',function(){if(guide.showModal)guide.showModal();else guide.setAttribute('open','');});
+$('guideClose').addEventListener('click',function(){if(guide.close)guide.close();else guide.removeAttribute('open');});
+guide.addEventListener('click',function(e){if(e.target===guide&&guide.close)guide.close();});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){readPal();if(V3)buildColumn();drawPlot();if(view==='zoom')drawMicro();});
+var ro=new ResizeObserver(function(){if(view==='graph')drawPlot();if(view==='col'){resize3D();if(!running)render3D(0,true);}if(view==='zoom'){if(sizeMicro()){MICRO[mode].init();drawMicro();}}});
+ro.observe($('stage'));
+buildPanel();update(false);setView('graph');$('mname').textContent='Multiple paths';
+if(running)requestAnimationFrame(loop);else setPlay(false);
 })();
 </script>
 </body>
