@@ -21,8 +21,15 @@ button,select,input{font:inherit}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
 header{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--rule);flex:0 0 auto}
 @media (max-width:480px){header h1 .long{display:none}}
-header h1{font-size:1.02rem;margin:0;color:var(--navy);flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header select{border:1px solid var(--steel);border-radius:6px;background:var(--bg);color:var(--navy);padding:5px 6px;max-width:52vw;font-size:.92rem}
+header h1{font-size:1.02rem;margin:0;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .ttl{flex:1 1 auto;min-width:0}
+header{flex-wrap:wrap;row-gap:0}
+header .brand{flex:0 0 100%;font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;margin-bottom:1px}
+header select.bigsel{border:1.5px solid var(--steel);border-radius:8px;background:var(--bg);color:var(--navy);padding:7px 10px;max-width:50vw;font-size:1rem;font-weight:700}
+@media (min-width:700px){header select.bigsel{min-width:240px;font-size:1.05rem;padding:8px 14px}}
+.eq{font-family:"Times New Roman",Times,serif;font-size:.95rem;color:var(--muted);margin:3px 0 0;line-height:1.35}
+.eq .r{color:var(--eqr);font-weight:700}
+.eq .n{font-family:Arial,Helvetica,sans-serif;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .btn{border:1px solid var(--steel);border-radius:6px;background:transparent;color:var(--navy);padding:5px 10px;cursor:pointer;font-size:.88rem}
 .btn:hover{background:var(--panel)}
 .main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
@@ -117,8 +124,8 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
 .dbody p{margin:6px 0}
 .dbody .note{color:var(--muted);font-size:.85rem}
 .fallback{margin:auto;padding:20px;text-align:center;color:var(--muted)}
-:root{--cmp:#c2185b}
-@media (prefers-color-scheme:dark){:root{--cmp:#f48fb1}}
+:root{--cmp:#c2185b;--eqr:#c62828}
+@media (prefers-color-scheme:dark){:root{--cmp:#f48fb1;--eqr:#ff8a80}}
 .cmpline{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
 .cmpline b{color:var(--cmp)}
 .msel{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--steel);border-radius:6px;background:var(--bg);color:var(--ink);font-size:16px}
@@ -135,8 +142,9 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
 <body>
 <div class="app">
   <header>
-    <h1>Van Deemter<span class="long"> explorer</span></h1>
-    <select id="type" aria-label="Column type">
+    <div class="brand">Interactive Chemistry · Ali Shafiee · University of Florida</div>
+    <div class="ttl"><h1>Van Deemter<span class="long"> explorer</span></h1></div>
+    <select id="type" class="bigsel" aria-label="Column type">
       <option value="hplc">HPLC, packed</option>
       <option value="gcp">GC, packed</option>
       <option value="gcc">GC, capillary</option>
@@ -213,11 +221,12 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
 <dialog id="guide" aria-labelledby="gTitle">
   <div class="dhead"><h2 id="gTitle">Guide</h2><button type="button" class="btn" id="guideClose">Close</button></div>
   <div class="dbody">
+    <p class="note" style="margin-top:10px">Interactive Chemistry · Ali Shafiee · University of Florida</p>
     <h3>What this tool shows</h3>
     <p>Every band of molecules spreads out as it moves through a column, and the more it spreads, the fewer compounds the column can separate. The plate height H measures that spreading: smaller H means sharper peaks. The Van Deemter equation splits H into three causes:</p>
     <p style="font-family:'Times New Roman',serif;font-size:1.1rem;color:var(--navy)">H = A + B/u + (C<sub>S</sub> + C<sub>M</sub>)·u</p>
     <h3>How to use it</h3>
-    <p>Pick a column type at the top. Change parameters in the panel (Flow, A, B, C). Tap any dashed value to type an exact number, which is handy for practice problems. H and the bar of contributions update instantly. Switch views to see the graph, a 3D column, close-ups of each term, or every number and coefficient. On the graph, drag sideways to change the velocity.</p>
+    <p>Pick a column type at the top. Change parameters in the panel (Flow, A, B, C). Under each parameter is the equation it enters, with the parameter in red and today’s numbers plugged in, so you can see whether it sits in a numerator or a denominator, is squared, or is raised to a power. Tap any dashed value to type an exact number, which is handy for practice problems. H and the bar of contributions update instantly. Switch views to see the graph, a 3D column, close-ups of each term, or every number and coefficient. On the graph, drag sideways to change the velocity.</p>
     <h3>Molecule size and carrier gas</h3>
     <p>In the Molecules view, the analyte is drawn in its real shape (ball-and-stick, with a faint shell showing its size as other molecules feel it) among carrier gas molecules, which bounce off it. The faint dots are copies of the analyte that all started at the same point, and the ring shows how far they have spread: faster diffusion means a ring that grows faster. The animation is in slow motion and the gas is drawn much denser than it really is so the collisions are visible.</p>
     <p>In the B tab you can pick a real analyte and turn on Compare to set it against a second analyte or a second carrier gas (or solvent). The Molecules view shows each analyte in its real shape being knocked around by carrier gas molecules. Bigger analytes and bulkier, heavier carrier gases mean slower diffusion (smaller D<sub>M</sub>).</p>
@@ -339,12 +348,12 @@ function renderGroup(g,box){
     var ch=document.createElement('div');ch.className='chips';ch.setAttribute('role','group');ch.setAttribute('aria-label',TT.mobLabel);
     TT.mob.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('aria-pressed',VALS[type].mobile===m[0]?'true':'false');
       b.addEventListener('click',function(){VALS[type].mobile=m[0];ch.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(false);});ch.appendChild(b);});
-    lab.appendChild(ch);box.appendChild(lab);
+    lab.appendChild(ch);var eqm=document.createElement('div');eqm.className='eq';eqm.setAttribute('data-eq','mob');lab.appendChild(eqm);box.appendChild(lab);
     function molSelect(id,val,onch){var sel=document.createElement('select');sel.id=id;sel.className='msel';
       Object.keys(MOLS).forEach(function(k){var m=MOLS[k],o=document.createElement('option');o.value=k;o.textContent=m.n+', '+m.f+' ('+Math.round(m.M)+' g/mol)';sel.appendChild(o);});
       var oc=document.createElement('option');oc.value='custom';oc.textContent='Custom size (set the molar mass)';sel.appendChild(oc);sel.value=val;sel.addEventListener('change',function(){onch(sel.value);});return sel;}
     var ar=document.createElement('div');ar.className='row';ar.innerHTML='<div class="top"><label for="molSel">Analyte</label></div>';
-    ar.appendChild(molSelect('molSel',VALS[type].mol,function(k){VALS[type].mol=k;buildPanel();update(false);molRefresh();}));box.appendChild(ar);
+    ar.appendChild(molSelect('molSel',VALS[type].mol,function(k){VALS[type].mol=k;buildPanel();update(false);molRefresh();}));var eqa=document.createElement('div');eqa.className='eq';eqa.setAttribute('data-eq','mol');ar.appendChild(eqa);box.appendChild(ar);
     var dm=document.createElement('p');dm.className='info';dm.id='dmInfo';box.appendChild(dm);
     var cr=document.createElement('div');cr.className='row';
     cr.innerHTML='<label class="chk"><input type="checkbox" id="cmpOn"'+(VALS[type].cmpOn?' checked':'')+'> Compare with a second analyte or '+(TT.liquid?'solvent':'carrier gas')+'</label>';
@@ -366,7 +375,7 @@ function renderGroup(g,box){
   SPEC.filter(function(s){return s.grp===g&&s.r[type]&&(s.id!=='M'||VALS[type].mol==='custom'||(VALS[type].cmpOn&&VALS[type].cmpMol==='custom'));}).forEach(function(s){
     var rr=s.r[type],unit=typeof s.unit==='function'?s.unit(TT):s.unit,row=document.createElement('div');row.className='row';
     var lid='p_'+s.id;
-    row.innerHTML='<div class="top"><label for="'+lid+'">'+s.label+'</label></div>';
+    row.innerHTML='<div class="top"><label for="'+lid+'">'+s.label+'</label></div><div class="eq" data-eq="'+s.id+'"></div>';
     var vb=document.createElement('button');vb.type='button';vb.className='val';vb.setAttribute('aria-label','Type a value for '+s.label.replace(/<[^>]+>/g,''));
     row.querySelector('.top').appendChild(vb);
     var inp=document.createElement('input');inp.type='range';inp.id=lid;
@@ -398,11 +407,38 @@ function buildPanel(){
   var rb=document.createElement('button');rb.type='button';rb.className='btn reset';rb.textContent='Reset all to defaults';
   rb.addEventListener('click',function(){VALS[type]=defaults(type);buildPanel();update(true);});box.appendChild(rb);
 }
-MQall.addEventListener('change',function(){buildPanel();if(P){updateLive();updateDM();}});
-function setPGroup(g){pgroup=g;setFold(false);document.querySelectorAll('#ptabs [role=tab]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-p')===g?'true':'false');});buildPanel();updateDM();$('pbody').scrollTop=0;}
+MQall.addEventListener('change',function(){buildPanel();if(P){updateLive();updateDM();refreshEq();}});
+function setPGroup(g){pgroup=g;setFold(false);setTimeout(refreshEq,0);document.querySelectorAll('#ptabs [role=tab]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-p')===g?'true':'false');});buildPanel();updateDM();$('pbody').scrollTop=0;}
 document.querySelectorAll('#ptabs [role=tab]').forEach(function(b){b.addEventListener('click',function(){setPGroup(b.getAttribute('data-p'));});});
 function setFold(c){var r=document.querySelector('.right');if(r.classList.contains('collapsed')===c)return;r.classList.toggle('collapsed',c);var f=$('fold');f.textContent=c?'▴':'▾';f.setAttribute('aria-expanded',c?'false':'true');f.setAttribute('aria-label',c?'Show the controls':'Hide the controls to enlarge the view');}
 $('fold').addEventListener('click',function(){setFold(!document.querySelector('.right').classList.contains('collapsed'));});
+
+
+/* ================= equations shown under each parameter ================= */
+function R_(x){return '<span class="r">'+x+'</span>';}
+function N_(x){return '<span class="n">'+x+'</span>';}
+function eqFor(id){
+  var TT=TYPES[type],v=VALS[type],h=TT.hScale,hu=TT.hUnit,f=function(m){return sig(m/h,3);};
+  var fk=(1+6*P.k+11*P.k*P.k)/(24*(1+P.k)*(1+P.k));
+  var dmLine=TT.liquid?'D<sub>M</sub> = 7.4×10<sup>−8</sup>·√(φM<sub>s</sub>)·'+(id==='T'?R_('T'):'T')+' / ('+(id==='mob'?R_('η'):'η')+(id==='T'?'('+R_('T')+')':'')+'·'+(id==='M'||id==='mol'?R_('V<sub>A</sub>'):'V<sub>A</sub>')+'<sup>0.6</sup>)'
+     :'D<sub>M</sub> ∝ '+(id==='T'?R_('T'):'T')+'<sup>1.75</sup>·√(1/'+(id==='M'||id==='mol'?R_('M<sub>A</sub>'):'M<sub>A</sub>')+' + 1/'+(id==='mob'?R_('M<sub>gas</sub>'):'M<sub>gas</sub>')+') / ('+(id==='P'?R_('P'):'P')+'·('+(id==='M'||id==='mol'?R_('V<sub>A</sub>'):'V<sub>A</sub>')+'<sup>1/3</sup> + '+(id==='mob'?R_('V<sub>gas</sub>'):'V<sub>gas</sub>')+'<sup>1/3</sup>)<sup>2</sup>)';
+  var dmNum=N_('D<sub>M</sub> = '+sci(P.DM*1e4,2)+' cm²/s → B/u = '+fmtH(P.HB)+', C<sub>M</sub>·u = '+fmtH(P.HCM));
+  switch(id){
+    case 'u':return 'H = A + B/'+R_('u')+' + C·'+R_('u')+'<br>'+N_('= '+f(P.HA)+' + '+f(P.HB)+' + '+f(P.HCS+P.HCM)+' = '+f(P.H)+' '+hu);
+    case 'L':return 'N = '+R_('L')+'/H &nbsp;&nbsp; t<sub>R</sub> = ('+R_('L')+'/u)(1 + k)<br>'+N_('N = '+fmtLen(P.L)+' / '+fmtH(P.H)+' = '+Math.round(P.N).toLocaleString('en-US')+'; t<sub>R</sub> = '+fmtTime(P.tR));
+    case 'id':return 'C<sub>M</sub> = f(k)·'+R_('r')+'<sup>2</sup>/D<sub>M</sub> &nbsp; (r = '+R_('d<sub>c</sub>')+'/2)<br>'+N_('= '+fk.toFixed(3)+' × ('+sig(P.r*1e3,3)+' mm)² / D<sub>M</sub> = '+sci(P.CM,2)+' s → C<sub>M</sub>·u = '+fmtH(P.HCM));
+    case 'dp':return 'A = 2λ'+R_('d<sub>p</sub>')+' &nbsp;&nbsp; C<sub>M</sub> = ω·'+R_('d<sub>p</sub>')+'<sup>2</sup>/D<sub>M</sub><br>'+N_('A = 2 × '+v.lam.toFixed(2)+' × '+sig(v.dp,3)+' µm = '+fmtH(P.A)+'; C<sub>M</sub>·u = '+fmtH(P.HCM));
+    case 'lam':return 'A = 2'+R_('λ')+'d<sub>p</sub><br>'+N_('= 2 × '+v.lam.toFixed(2)+' × '+sig(v.dp,3)+' µm = '+fmtH(P.A));
+    case 'gam':return 'B = 2'+R_('γ')+'D<sub>M</sub><br>'+N_('= 2 × '+v.gam.toFixed(2)+' × '+sci(P.DM*1e4,2)+' cm²/s = '+sci(P.B*1e4,2)+' cm²/s → B/u = '+fmtH(P.HB));
+    case 'M':case 'T':case 'P':case 'mol':case 'mob':return dmLine+'<br>'+dmNum;
+    case 'k':return 'C<sub>S</sub> = (2/3)·'+R_('k')+'/(1 + '+R_('k')+')<sup>2</sup>·d<sub>f</sub><sup>2</sup>/D<sub>S</sub> &nbsp; t<sub>R</sub> = t<sub>M</sub>(1 + '+R_('k')+')<br>'+N_('k/(1+k)² = '+(P.k/((1+P.k)*(1+P.k))).toFixed(3)+'; C<sub>S</sub>·u = '+fmtH(P.HCS)+'; t<sub>R</sub> = '+fmtTime(P.tR));
+    case 'df':return 'C<sub>S</sub> = (2/3)·k/(1 + k)<sup>2</sup>·'+R_('d<sub>f</sub>')+'<sup>2</sup>/D<sub>S</sub><br>'+N_('= '+((2/3)*P.k/((1+P.k)*(1+P.k))).toFixed(3)+' × ('+sig(v.df,2)+' µm)² / D<sub>S</sub> = '+sci(P.CS,2)+' s → C<sub>S</sub>·u = '+fmtH(P.HCS));
+    case 'DS':return 'C<sub>S</sub> = (2/3)·k/(1 + k)<sup>2</sup>·d<sub>f</sub><sup>2</sup>/'+R_('D<sub>S</sub>')+'<br>'+N_('= … / '+sci(v.DS,1)+' cm²/s = '+sci(P.CS,2)+' s → C<sub>S</sub>·u = '+fmtH(P.HCS));
+  }
+  return '';
+}
+function fmtLen(m){var t=TYPES[type];return sig(m/t.lenScale,3)+' '+t.lenUnit;}
+function refreshEq(){document.querySelectorAll('.eq[data-eq]').forEach(function(e){e.innerHTML=eqFor(e.getAttribute('data-eq'));});}
 
 /* ================= Van Deemter graph (drawn at the real pixel size) ================= */
 var NS='http://www.w3.org/2000/svg',plot=$('plot'),GEO=null;
@@ -839,7 +875,7 @@ function setView(v){
 document.querySelectorAll('.seg [data-view]').forEach(function(b){b.addEventListener('click',function(){setView(b.getAttribute('data-view'));});});
 function update(rebuild){
   P=physics(type,VALS[type]);P2=VALS[type].cmpOn?physics(type,cmpVals()):null;setLegend();
-  updateLive();updateDM();drawPlot();updateNums();
+  updateLive();updateDM();refreshEq();drawPlot();updateNums();
   if(view==='col'&&rebuild)buildColumn();else if(rebuild&&V3)V3.dirty=true;
   if(view==='zoom'){if(rebuild&&mode==='A')MICRO.A.init();capText();}
   if(MV&&!TYPES[type].liquid){molRefresh();}else if(view==='mol')molRefresh();
