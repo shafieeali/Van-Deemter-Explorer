@@ -489,7 +489,7 @@ function updateNums(){
 var cm=$('cm'),cx=cm.getContext('2d'),CW=600,CH=300,mode='A',ms={},pal={};
 function readPal(){var cs=getComputedStyle(document.documentElement);['ink','navy','muted','bg','grid','tA','tB','tCS','tCM','mob','sta','part','partEdge','film','support','cmp'].forEach(function(k){pal[k]=cs.getPropertyValue('--'+k).trim();});}
 readPal();
-function sizeMicro(){var r=cm.getBoundingClientRect();if(!r.width||!r.height)return false;var d=Math.min(2,window.devicePixelRatio||1);CH=clamp(r.height,250,340);var sc=r.height/CH;CW=r.width/sc;cm.width=Math.round(r.width*d);cm.height=Math.round(r.height*d);cx.setTransform(d*sc,0,0,d*sc,0,0);return true;}
+function sizeMicro(){var r=cm.getBoundingClientRect();if(!r.width||!r.height)return false;var d=Math.min(2,window.devicePixelRatio||1);CH=clamp(r.height,250,340);if(r.height/CH>1.25)CH=r.height/1.25;var sc=r.height/CH;CW=r.width/sc;cm.width=Math.round(r.width*d);cm.height=Math.round(r.height*d);cx.setTransform(d*sc,0,0,d*sc,0,0);return true;}
 function speedFactor(){return clamp(P.u/P.uopt,0.2,3);}
 function drawProfile(xs,color,maxH){
   var bw=5,nb=Math.ceil(CW/bw),h=new Array(nb).fill(0),i;xs.forEach(function(x){var b=Math.floor(x/bw);if(b>=0&&b<nb)h[b]++;});
