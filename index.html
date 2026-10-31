@@ -117,6 +117,19 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
 .dbody p{margin:6px 0}
 .dbody .note{color:var(--muted);font-size:.85rem}
 .fallback{margin:auto;padding:20px;text-align:center;color:var(--muted)}
+:root{--cmp:#c2185b}
+@media (prefers-color-scheme:dark){:root{--cmp:#f48fb1}}
+.cmpline{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.cmpline b{color:var(--cmp)}
+.msel{width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--steel);border-radius:6px;background:var(--bg);color:var(--ink);font-size:16px}
+.chk{display:flex;gap:8px;align-items:center;font-size:.9rem;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--steel)}
+.cmpbox{border-left:3px solid var(--cmp);padding:2px 0 4px 10px;margin:6px 0}
+#cmol{width:100%;height:100%;display:block;touch-action:pan-y;cursor:grab}
+.mlabel{position:absolute;font-size:.76rem;line-height:1.3;color:var(--ink);background:color-mix(in srgb,var(--bg) 82%,transparent);border-radius:6px;padding:3px 6px;pointer-events:none;font-variant-numeric:tabular-nums;max-width:48%}
+.mlabel b{font-size:.8rem}
+.molnote{position:absolute;left:8px;bottom:8px;right:120px;font-size:.7rem;color:var(--muted);pointer-events:none}
+.molinfo{margin:auto;padding:18px;max-width:46ch;text-align:center;color:var(--muted);font-size:.9rem}
 </style>
 </head>
 <body>
@@ -136,10 +149,12 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
         <div class="l1"><span class="h" id="Hbig"></span><span class="sub" id="Hsub"></span><span class="st" id="Hst"></span></div>
         <div class="bar" id="bar" aria-hidden="true"></div>
         <div class="barlab" id="barlab"></div>
+        <div class="cmpline" id="cmpline" hidden></div>
       </div>
       <div class="seg" role="tablist" aria-label="View">
         <button type="button" role="tab" data-view="graph" aria-selected="true">Graph</button>
-        <button type="button" role="tab" data-view="col" aria-selected="false">3D column</button>
+        <button type="button" role="tab" data-view="col" aria-selected="false">Column</button>
+        <button type="button" role="tab" data-view="mol" aria-selected="false">Molecules</button>
         <button type="button" role="tab" data-view="zoom" aria-selected="false">Close-up</button>
         <button type="button" role="tab" data-view="nums" aria-selected="false">Numbers</button>
       </div>
@@ -156,6 +171,16 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
             <button type="button" class="btn" id="zin" aria-label="Zoom in">+</button>
             <button type="button" class="btn" id="zout" aria-label="Zoom out">−</button>
             <button type="button" class="btn" id="vreset">Reset</button>
+            <button type="button" class="btn playbtn" aria-pressed="false">Pause</button>
+          </div>
+        </div>
+        <div class="view v3" id="v-mol" role="tabpanel" aria-label="Analyte and carrier gas molecules">
+          <canvas id="cmol" tabindex="0" aria-label="3D view of the analyte molecule being knocked around by carrier gas molecules. Drag to rotate."></canvas>
+          <div class="mlabel" id="ml1"></div><div class="mlabel" id="ml2" hidden></div>
+          <div class="molnote" id="molnote">Slow motion; gas drawn denser than real. Dots and ring: copies of the analyte spreading from one start point.</div>
+          <p class="molinfo" id="molinfo" hidden>In a liquid, molecules are packed shoulder to shoulder and diffuse about 10,000 times more slowly than in a gas. Pick a GC column at the top to watch an analyte molecule being knocked around by carrier gas molecules. The analyte and solvent you choose still change D<sub>M</sub> and the graph here.</p>
+          <div class="ovl br">
+            <button type="button" class="btn" id="molRestart">Restart</button>
             <button type="button" class="btn playbtn" aria-pressed="false">Pause</button>
           </div>
         </div>
@@ -193,6 +218,10 @@ dialog::backdrop{background:rgba(10,20,30,.45)}
     <p style="font-family:'Times New Roman',serif;font-size:1.1rem;color:var(--navy)">H = A + B/u + (C<sub>S</sub> + C<sub>M</sub>)·u</p>
     <h3>How to use it</h3>
     <p>Pick a column type at the top. Change parameters in the panel (Flow, A, B, C). Tap any dashed value to type an exact number, which is handy for practice problems. H and the bar of contributions update instantly. Switch views to see the graph, a 3D column, close-ups of each term, or every number and coefficient. On the graph, drag sideways to change the velocity.</p>
+    <h3>Molecule size and carrier gas</h3>
+    <p>In the Molecules view, the analyte is drawn in its real shape (ball-and-stick, with a faint shell showing its size as other molecules feel it) among carrier gas molecules, which bounce off it. The faint dots are copies of the analyte that all started at the same point, and the ring shows how far they have spread: faster diffusion means a ring that grows faster. The animation is in slow motion and the gas is drawn much denser than it really is so the collisions are visible.</p>
+    <p>In the B tab you can pick a real analyte and turn on Compare to set it against a second analyte or a second carrier gas (or solvent). The Molecules view shows each analyte in its real shape being knocked around by carrier gas molecules. Bigger analytes and bulkier, heavier carrier gases mean slower diffusion (smaller D<sub>M</sub>).</p>
+    <p>The carrier gas does not push big molecules more slowly: at the same linear velocity u, every analyte molecule in the gas moves down the column at the same speed. What the gas changes is how fast the analyte diffuses, which changes B and C<sub>M</sub>, the shape of the curve and the optimum velocity. In a real GC column, bigger molecules also have higher boiling points and larger k, so they elute later too; here both use the same k so you can see the diffusion effect on its own.</p>
     <h3>A · Multiple paths (eddy diffusion)</h3>
     <p>In a packed column, molecules weave around particles. Some find nearly straight routes, others take long detours, so they arrive at different times. Bigger particles (d<sub>p</sub>) and uneven packing (λ) make paths more varied. Flow speed doesn’t change this, so A is a flat line. Open tubular (capillary) columns have no particles: A = 0.</p>
     <h3>B · Longitudinal diffusion</h3>
@@ -232,6 +261,11 @@ var TYPES={
         mob:[['N2','N₂'],['He','He'],['H2','H₂']],mobDef:'He',mobLabel:'Carrier gas'}
 };
 var GASES={N2:{M:28.01,V:18.5,name:'N₂'},He:{M:4.003,V:2.67,name:'He'},H2:{M:2.016,V:6.12,name:'H₂'}};
+var MOLS={
+  methane:{n:'methane',f:'CH₄',c:1,h:4},ethanol:{n:'ethanol',f:'C₂H₅OH',c:2,h:6,o:1},benzene:{n:'benzene',f:'C₆H₆',c:6,h:6,r:1},phenol:{n:'phenol',f:'C₆H₅OH',c:6,h:6,o:1,r:1},
+  hexane:{n:'n-hexane',f:'C₆H₁₄',c:6,h:14},toluene:{n:'toluene',f:'C₇H₈',c:7,h:8,r:1},octane:{n:'n-octane',f:'C₈H₁₈',c:8,h:18},naphthalene:{n:'naphthalene',f:'C₁₀H₈',c:10,h:8,r:2},
+  decane:{n:'n-decane',f:'C₁₀H₂₂',c:10,h:22},hexadecane:{n:'n-hexadecane',f:'C₁₆H₃₄',c:16,h:34},eicosane:{n:'n-eicosane',f:'C₂₀H₄₂',c:20,h:42}};
+Object.keys(MOLS).forEach(function(k){var m=MOLS[k];m.o=m.o||0;m.r=m.r||0;m.M=12.011*m.c+1.008*m.h+15.999*m.o;m.fuller=15.9*m.c+2.31*m.h+6.11*m.o-18.3*m.r;m.lebas=14.8*m.c+3.7*m.h+7.4*m.o-15*m.r;});
 var SOLV={water:{phi:2.6,Ms:18.02,eta:0.890,B:1877,name:'water'},methanol:{phi:1.9,Ms:32.04,eta:0.544,B:1224,name:'methanol'},acetonitrile:{phi:1.0,Ms:41.05,eta:0.343,B:922,name:'acetonitrile'}};
 var SPEC=[
   {id:'u',grp:'flow',label:'Linear velocity, u',unit:function(t){return t.uUnit;},r:{hplc:[0.05,8,0.05,1],gcp:[1,60,0.5,15],gcc:[2,120,1,30]}},
@@ -249,13 +283,14 @@ var SPEC=[
 ];
 function specOf(id){for(var i=0;i<SPEC.length;i++)if(SPEC[i].id===id)return SPEC[i];}
 var VALS={},DEF={};
-function defaults(t){var o={mobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])o[s.id]=s.r[t][3];});return o;}
+function defaults(t){var o={mobile:TYPES[t].mobDef,mol:TYPES[t].liquid?'naphthalene':'octane',cmpOn:false,cmpMol:'eicosane',cmpMobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])o[s.id]=s.r[t][3];});return o;}
 Object.keys(TYPES).forEach(function(t){VALS[t]=defaults(t);});
 var type='hplc';
 function physics(t,v){
   var TT=TYPES[t],T=v.T+273.15,DM,eta=null;
-  if(TT.liquid){var s=SOLV[v.mobile];eta=s.eta*Math.exp(s.B*(1/T-1/298.15));DM=7.4e-8*Math.sqrt(s.phi*s.Ms)*T/(eta*Math.pow(1.2*v.M,0.6))*1e-4;}
-  else{var g=GASES[v.mobile];DM=1e-3*Math.pow(T,1.75)*Math.sqrt(1/v.M+1/g.M)/(v.P*Math.pow(Math.cbrt(1.46*v.M)+Math.cbrt(g.V),2))*1e-4;}
+  var mo=(v.mol&&v.mol!=='custom')?MOLS[v.mol]:null,Mw=mo?mo.M:v.M;
+  if(TT.liquid){var s=SOLV[v.mobile];eta=s.eta*Math.exp(s.B*(1/T-1/298.15));DM=7.4e-8*Math.sqrt(s.phi*s.Ms)*T/(eta*Math.pow(mo?mo.lebas:1.2*v.M,0.6))*1e-4;}
+  else{var g=GASES[v.mobile];DM=1e-3*Math.pow(T,1.75)*Math.sqrt(1/Mw+1/g.M)/(v.P*Math.pow(Math.cbrt(mo?mo.fuller:1.46*v.M)+Math.cbrt(g.V),2))*1e-4;}
   var k=v.k,fk=(1+6*k+11*k*k)/(24*(1+k)*(1+k));
   var dp=TT.packed?v.dp*1e-6:0,r=TT.packed?0:v.id*1e-3/2,gam=TT.packed?v.gam:1;
   var A=TT.packed?2*v.lam*dp:0,B=2*gam*DM;
@@ -265,7 +300,12 @@ function physics(t,v){
   var u=v.u*TT.uScale,H=A+B/u+C*u,L=v.L*TT.lenScale,N=L/H,tM=L/u,tR=tM*(1+k);
   return {DM:DM,eta:eta,A:A,B:B,CS:CS,CM:CM,C:C,uopt:uopt,Hmin:Hmin,u:u,H:H,HA:A,HB:B/u,HCS:CS*u,HCM:CM*u,L:L,N:N,Nopt:L/Hmin,tM:tM,tR:tR,w:4*tR/Math.sqrt(N),k:k,dp:dp,r:r,gam:gam};
 }
-var REF={};Object.keys(TYPES).forEach(function(t){var p=physics(t,defaults(t));REF[t]={H:p.Hmin,HB:p.B/p.uopt,C:p.C};});
+var REF={};Object.keys(TYPES).forEach(function(t){var p=physics(t,defaults(t));REF[t]={H:p.Hmin,HB:p.B/p.uopt,C:p.C,DM:p.DM};});
+function cmpVals(){var v=VALS[type],o={};for(var k in v)o[k]=v[k];o.mol=v.cmpMol;o.mobile=v.cmpMobile;return o;}
+function molName(key,M){return key==='custom'?('analyte of '+sig(M,3)+' g/mol'):MOLS[key].n;}
+function mobName(t,key){return TYPES[t].liquid?SOLV[key].name:GASES[key].name;}
+function label1(){var v=VALS[type];return molName(v.mol,v.M)+' in '+mobName(type,v.mobile);}
+function label2(){var v=VALS[type];return molName(v.cmpMol,v.M)+' in '+mobName(type,v.cmpMobile);}
 
 /* ================= formatting ================= */
 var SUPD={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
@@ -300,9 +340,30 @@ function renderGroup(g,box){
     TT.mob.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('aria-pressed',VALS[type].mobile===m[0]?'true':'false');
       b.addEventListener('click',function(){VALS[type].mobile=m[0];ch.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(false);});ch.appendChild(b);});
     lab.appendChild(ch);box.appendChild(lab);
+    function molSelect(id,val,onch){var sel=document.createElement('select');sel.id=id;sel.className='msel';
+      Object.keys(MOLS).forEach(function(k){var m=MOLS[k],o=document.createElement('option');o.value=k;o.textContent=m.n+', '+m.f+' ('+Math.round(m.M)+' g/mol)';sel.appendChild(o);});
+      var oc=document.createElement('option');oc.value='custom';oc.textContent='Custom size (set the molar mass)';sel.appendChild(oc);sel.value=val;sel.addEventListener('change',function(){onch(sel.value);});return sel;}
+    var ar=document.createElement('div');ar.className='row';ar.innerHTML='<div class="top"><label for="molSel">Analyte</label></div>';
+    ar.appendChild(molSelect('molSel',VALS[type].mol,function(k){VALS[type].mol=k;buildPanel();update(false);molRefresh();}));box.appendChild(ar);
     var dm=document.createElement('p');dm.className='info';dm.id='dmInfo';box.appendChild(dm);
+    var cr=document.createElement('div');cr.className='row';
+    cr.innerHTML='<label class="chk"><input type="checkbox" id="cmpOn"'+(VALS[type].cmpOn?' checked':'')+'> Compare with a second analyte or '+(TT.liquid?'solvent':'carrier gas')+'</label>';
+    box.appendChild(cr);
+    cr.querySelector('input').addEventListener('change',function(){VALS[type].cmpOn=this.checked;buildPanel();update(false);molRefresh();});
+    if(VALS[type].cmpOn){
+      var cb=document.createElement('div');cb.className='cmpbox';
+      var r2=document.createElement('div');r2.className='row';r2.innerHTML='<div class="top"><label for="molSel2">Second analyte</label></div>';
+      r2.appendChild(molSelect('molSel2',VALS[type].cmpMol,function(k){VALS[type].cmpMol=k;update(false);molRefresh();}));cb.appendChild(r2);
+      var r3=document.createElement('div');r3.className='row';r3.innerHTML='<div class="top"><span>Second '+(TT.liquid?'solvent':'carrier gas')+'</span></div>';
+      var ch2=document.createElement('div');ch2.className='chips';
+      TT.mob.forEach(function(m){var b=document.createElement('button');b.type='button';b.textContent=m[1];b.setAttribute('aria-pressed',VALS[type].cmpMobile===m[0]?'true':'false');
+        b.addEventListener('click',function(){VALS[type].cmpMobile=m[0];ch2.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(false);molRefresh();});ch2.appendChild(b);});
+      r3.appendChild(ch2);cb.appendChild(r3);
+      var dm2=document.createElement('p');dm2.className='info';dm2.id='dmInfo2';cb.appendChild(dm2);
+      box.appendChild(cb);
+    }
   }
-  SPEC.filter(function(s){return s.grp===g&&s.r[type];}).forEach(function(s){
+  SPEC.filter(function(s){return s.grp===g&&s.r[type]&&(s.id!=='M'||VALS[type].mol==='custom'||(VALS[type].cmpOn&&VALS[type].cmpMol==='custom'));}).forEach(function(s){
     var rr=s.r[type],unit=typeof s.unit==='function'?s.unit(TT):s.unit,row=document.createElement('div');row.className='row';
     var lid='p_'+s.id;
     row.innerHTML='<div class="top"><label for="'+lid+'">'+s.label+'</label></div>';
@@ -371,8 +432,12 @@ function drawPlot(){
   g.appendChild(el('path',{d:path(function(u){return P.CS*u;}),stroke:'var(--tCS)','stroke-width':1.6,'stroke-dasharray':'9 3 2 3'}));
   g.appendChild(el('path',{d:path(function(u){return P.CM*u;}),stroke:'var(--tCM)','stroke-width':1.6,'stroke-dasharray':'9 3 2 3'}));
   g.appendChild(el('path',{d:path(function(u){return P.A+P.B/u+P.C*u;}),stroke:'var(--navy)','stroke-width':3}));
+  if(P2){g.appendChild(el('path',{d:path(function(u){return P2.A+P2.B/u+P2.C*u;}),stroke:'var(--cmp)','stroke-width':2.6,'stroke-dasharray':'8 4'}));}
   plot.appendChild(g);
   plot.appendChild(el('line',{x1:ux,y1:PT,x2:ux,y2:H-PB,stroke:'var(--muted)','stroke-dasharray':'2 4','stroke-width':1.3}));
+  if(P2){var ox2=X(P2.uopt/TT.uScale),oy2=Y(P2.Hmin/TT.hScale),hy2=Y(P2.H/TT.hScale);
+    if(ox2<=W-PR&&oy2>=PT)plot.appendChild(el('circle',{cx:ox2,cy:oy2,r:4.5,fill:'var(--bg)',stroke:'var(--cmp)','stroke-width':2}));
+    if(hy2>=PT)plot.appendChild(el('circle',{cx:ux,cy:hy2,r:5.5,fill:'var(--cmp)',stroke:'var(--bg)','stroke-width':2}));}
   var ox=X(P.uopt/TT.uScale),oy=Y(P.Hmin/TT.hScale);
   if(ox<=W-PR&&oy>=PT){plot.appendChild(el('circle',{cx:ox,cy:oy,r:4.5,fill:'var(--bg)',stroke:'var(--navy)','stroke-width':2}));
     if(Math.abs(ox-ux)>46){var rt=ox>W-PR-90;plot.appendChild(el('text',{x:ox+(rt?-7:7),y:oy+16,'text-anchor':rt?'end':'start','font-size':11,fill:'var(--navy)','class':'halo'},'H min'));}}
@@ -385,10 +450,10 @@ function drawPlot(){
   plot.addEventListener('pointermove',function(e){if(on)setU(e);});
   plot.addEventListener('pointerup',function(){on=false;});plot.addEventListener('pointercancel',function(){on=false;});
 })();
-$('leg').innerHTML='<span style="color:var(--navy);font-weight:700">H</span><span style="color:var(--tA)">A</span><span style="color:var(--tB)">B/u</span><span style="color:var(--tCS)">C<sub>S</sub>u</span><span style="color:var(--tCM)">C<sub>M</sub>u</span>';
+function setLegend(){$('leg').innerHTML=(P2?'<span style="color:var(--cmp);font-weight:700">compare</span>':'')+'<span style="color:var(--navy);font-weight:700">H</span><span style="color:var(--tA)">A</span><span style="color:var(--tB)">B/u</span><span style="color:var(--tCS)">C<sub>S</sub>u</span><span style="color:var(--tCM)">C<sub>M</sub>u</span>';}
 
 /* ================= live readout, tab values, numbers view ================= */
-var P=null;
+var P=null,P2=null;
 function updateLive(){
   var TT=TYPES[type],parts=[['A',P.HA,'--tA'],['B/u',P.HB,'--tB'],['C<sub>S</sub>u',P.HCS,'--tCS'],['C<sub>M</sub>u',P.HCM,'--tCM']];
   $('Hbig').textContent='H = '+fmtH(P.H);
@@ -403,9 +468,11 @@ function updateLive(){
   $('pv-A').textContent=fmtH(P.HA);
   $('pv-B').textContent=fmtH(P.HB);
   $('pv-C').textContent=fmtH(P.HCS+P.HCM);
+  var cl=$('cmpline');if(P2){cl.hidden=false;cl.innerHTML='<b>■ '+label2()+'</b>: H = '+fmtH(P2.H)+', u<sub>opt</sub> '+fmtU(P2.uopt)+' (first: '+label1()+')';}else cl.hidden=true;
   var gh={flow:'u = '+fmtU(P.u),A:'A = '+fmtH(P.HA),B:'B/u = '+fmtH(P.HB),C:'C·u = '+fmtH(P.HCS+P.HCM)};Object.keys(gh).forEach(function(k){var e=$('gh-'+k);if(e)e.textContent=gh[k];});
 }
-function updateDM(){var d=$('dmInfo');if(!d)return;var TT=TYPES[type];d.innerHTML='D<sub>M</sub> in '+(TT.liquid?SOLV[VALS[type].mobile].name+' (viscosity '+sig(P.eta,2)+' cP)':GASES[VALS[type].mobile].name)+': <b>'+sci(P.DM*1e4,2)+' cm²/s</b>';}
+function updateDM(){var d=$('dmInfo');if(!d)return;var TT=TYPES[type];d.innerHTML='D<sub>M</sub> of '+label1()+(TT.liquid?' (viscosity '+sig(P.eta,2)+' cP)':'')+': <b>'+sci(P.DM*1e4,2)+' cm²/s</b>';
+  var d2=$('dmInfo2');if(d2&&P2)d2.innerHTML='D<sub>M</sub> of '+label2()+': <b style="color:var(--cmp)">'+sci(P2.DM*1e4,2)+' cm²/s</b> ('+sig(P2.DM/P.DM,2)+'× the first). Both use the same k, so only diffusion differs.';}
 function updateNums(){
   if(!$('v-nums').classList.contains('on'))return;
   var TT=TYPES[type],ratio=P.u/P.uopt;
@@ -414,12 +481,13 @@ function updateNums(){
   $('v-nums').innerHTML='<p>'+adv+'</p>'
    +'<h3>Plate height</h3><table>'+row('H at u = '+fmtU(P.u),fmtH(P.H))+row('A',fmtH(P.HA))+row('B/u',fmtH(P.HB))+row('C<sub>S</sub>·u',fmtH(P.HCS))+row('C<sub>M</sub>·u',fmtH(P.HCM))+row('Lowest H, H<sub>min</sub>',fmtH(P.Hmin))+row('Optimum velocity, u<sub>opt</sub> = √(B/C)',fmtU(P.uopt))+(TT.packed?row('Reduced plate height, h = H/d<sub>p</sub>',sig(P.H/P.dp,3)):'')+'</table>'
    +'<h3>Coefficients</h3><table>'+row('A = 2λd<sub>p</sub>',TT.packed?fmtH(P.A):'0')+row('B = 2γD<sub>M</sub>',sci(P.B*1e4,2)+' cm²/s')+row('C<sub>S</sub>',sci(P.CS,2)+' s')+row('C<sub>M</sub>',sci(P.CM,2)+' s')+row('D<sub>M</sub>',sci(P.DM*1e4,2)+' cm²/s')+row('γ',sig(P.gam,2))+'</table>'
-   +'<h3>Your separation</h3><table>'+row('Plates, N = L/H',Math.round(P.N).toLocaleString('en-US'))+row('Best possible N (at u<sub>opt</sub>)',Math.round(P.Nopt).toLocaleString('en-US'))+row('Dead time, t<sub>M</sub> = L/u',fmtTime(P.tM))+row('Retention time, t<sub>R</sub> = t<sub>M</sub>(1+k)',fmtTime(P.tR))+row('Peak width, 4σ = 4t<sub>R</sub>/√N',fmtTime(P.w))+'</table>';
+   +'<h3>Your separation</h3><table>'+row('Plates, N = L/H',Math.round(P.N).toLocaleString('en-US'))+row('Best possible N (at u<sub>opt</sub>)',Math.round(P.Nopt).toLocaleString('en-US'))+row('Dead time, t<sub>M</sub> = L/u',fmtTime(P.tM))+row('Retention time, t<sub>R</sub> = t<sub>M</sub>(1+k)',fmtTime(P.tR))+row('Peak width, 4σ = 4t<sub>R</sub>/√N',fmtTime(P.w))+'</table>'
+   +(P2?'<h3 style="color:var(--cmp)">Comparison: '+label2()+'</h3><table>'+row('D<sub>M</sub>',sci(P2.DM*1e4,2)+' cm²/s ('+sig(P2.DM/P.DM,2)+'×)')+row('H at u = '+fmtU(P.u),fmtH(P2.H))+row('B/u',fmtH(P2.HB))+row('C<sub>M</sub>·u',fmtH(P2.HCM))+row('u<sub>opt</sub>',fmtU(P2.uopt))+row('H<sub>min</sub>',fmtH(P2.Hmin))+row('Plates, N',Math.round(P2.N).toLocaleString('en-US'))+'</table><p>Both analytes use the same k here. In a real GC column the larger molecule would also be retained longer.</p>':'');
 }
 
 /* ================= close-up (2D) views ================= */
 var cm=$('cm'),cx=cm.getContext('2d'),CW=600,CH=300,mode='A',ms={},pal={};
-function readPal(){var cs=getComputedStyle(document.documentElement);['ink','navy','muted','bg','grid','tA','tB','tCS','tCM','mob','sta','part','partEdge','film','support'].forEach(function(k){pal[k]=cs.getPropertyValue('--'+k).trim();});}
+function readPal(){var cs=getComputedStyle(document.documentElement);['ink','navy','muted','bg','grid','tA','tB','tCS','tCM','mob','sta','part','partEdge','film','support','cmp'].forEach(function(k){pal[k]=cs.getPropertyValue('--'+k).trim();});}
 readPal();
 function sizeMicro(){var r=cm.getBoundingClientRect();if(!r.width||!r.height)return false;var d=Math.min(2,window.devicePixelRatio||1);CH=clamp(r.height,250,340);var sc=r.height/CH;CW=r.width/sc;cm.width=Math.round(r.width*d);cm.height=Math.round(r.height*d);cx.setTransform(d*sc,0,0,d*sc,0,0);return true;}
 function speedFactor(){return clamp(P.u/P.uopt,0.2,3);}
@@ -552,7 +620,7 @@ function disposeGroup(g){while(g.children.length){var o=g.children.pop();if(o.ge
 function buildColumn(){
   if(!V3)return;
   var TT=TYPES[type],v=VALS[type],col=V3.col,L=V3.Lc,dark=window.matchMedia('(prefers-color-scheme: dark)').matches;
-  disposeGroup(col);V3.cm=null;
+  disposeGroup(col);V3.cm=null;V3.cc=null;V3.lg=null;
   var R=TT.packed?3.2:1.3+2.0*norm01(specOf('id'),v.id);V3.radius=R;
   col.add(new THREE.Mesh(new THREE.CylinderGeometry(R+0.06,R+0.06,L,64,1,true).rotateZ(-Math.PI/2),new THREE.MeshPhongMaterial({color:dark?0x9fc4e8:0x7fa8cf,transparent:true,opacity:dark?0.10:0.13,side:THREE.DoubleSide,depthWrite:false,shininess:90})));
   var ringMat=new THREE.LineBasicMaterial({color:dark?0x9fb0c0:0x566676,transparent:true,opacity:0.6});
@@ -583,15 +651,19 @@ function render3D(dt,still){
   var TT=TYPES[type],L=V3.Lc,x0=-L/2+0.8,x1=L/2-0.8;
   if(!still){V3.band+=dt*3.0*speedFactor();if(V3.band>x1+2)V3.band=x0;}
   if(!V3.cm){V3.cm=new THREE.Color(hexOf(pal.mob));V3.cs=new THREE.Color(hexOf(pal.sta));}
-  var frac=clamp((V3.band-x0)/(x1-x0),0,1),send=clamp(2.0*Math.sqrt(P.H/REF[type].H),0.25,9),sg=Math.sqrt(0.06+(send*send-0.06)*frac),fs=P.k/(1+P.k),R=V3.radius,film=V3.film||0;
+  var lg3=P2?'<span><i class="dot" style="background:var(--mob)"></i>'+label1()+'</span> <span style="margin-left:6px"><i class="dot" style="background:var(--cmp)"></i>'+label2()+'</span>':'<span><i class="dot" style="background:var(--mob)"></i>mobile phase</span> <span style="margin-left:6px"><i class="dot" style="background:var(--sta)"></i>stationary phase</span>';
+  if(V3.lg!==lg3){V3.lg=lg3;var oe=$('ovl3');oe.innerHTML=oe.innerHTML.split('<br>')[0]+'<br>'+lg3;}
+  if(!V3.cc)V3.cc=new THREE.Color(hexOf(pal.cmp));
+  var frac=clamp((V3.band-x0)/(x1-x0),0,1),send=clamp(2.0*Math.sqrt(P.H/REF[type].H),0.25,9),sg1=Math.sqrt(0.06+(send*send-0.06)*frac),fs=P.k/(1+P.k),R=V3.radius,film=V3.film||0;
+  var sg2=P2?Math.sqrt(0.06+(Math.pow(clamp(2.0*Math.sqrt(P2.H/REF[type].H),0.25,9),2)-0.06)*frac):sg1;
   for(var i=0;i<V3.NM;i++){
     var m=V3.mol[i];
     if(!still){m.g+=-m.g*dt/1.2+Math.sqrt(2*dt/1.2)*gauss();m.th+=gauss()*Math.sqrt(dt)*0.7;m.rr=clamp(m.rr+gauss()*Math.sqrt(dt)*0.12,0.02,1);var rate=m.s?1/0.7:fs/(1-fs+1e-9)/0.7;if(Math.random()<rate*dt)m.s=!m.s;}
-    var x=V3.band+sg*m.g,y,z;
+    var two=P2&&i>=V3.NM/2,sg=two?sg2:sg1,x=V3.band+sg*m.g,y,z;
     if(TT.packed){var rad=m.rr*(R-0.15);y=Math.cos(m.th)*rad;z=Math.sin(m.th)*rad;if(m.s&&z>0)z=-z;}
     else if(m.s){var th=Math.PI/2+((m.th%(Math.PI*2))+Math.PI*2)%Math.PI,rs=R-film*(0.15+0.7*((i*0.618)%1));y=Math.sin(th)*rs;z=Math.cos(th)*rs;}
     else{var rad2=m.rr*(R-film-0.1);y=Math.cos(m.th)*rad2;z=Math.sin(m.th)*rad2;}
-    V3.pos[i*3]=(x>-L/2&&x<L/2)?x:9999;V3.pos[i*3+1]=y;V3.pos[i*3+2]=z;var c=m.s?V3.cs:V3.cm;V3.colr[i*3]=c.r;V3.colr[i*3+1]=c.g;V3.colr[i*3+2]=c.b;
+    V3.pos[i*3]=(x>-L/2&&x<L/2)?x:9999;V3.pos[i*3+1]=y;V3.pos[i*3+2]=z;var c=P2?(two?V3.cc:V3.cm):(m.s?V3.cs:V3.cm);V3.colr[i*3]=c.r;V3.colr[i*3+1]=c.g;V3.colr[i*3+2]=c.b;
   }
   V3.pts.geometry.attributes.position.needsUpdate=true;V3.pts.geometry.attributes.color.needsUpdate=true;
   placeCam();V3.R.render(V3.scene,V3.camera);
@@ -607,11 +679,158 @@ function render3D(dt,still){
   $('vreset').addEventListener('click',function(){cam={yaw:CAM0.yaw,pitch:CAM0.pitch,dist:CAM0.dist};rr();});
 })();
 
+
+/* ================= molecules view (GC): analyte in its real shape among carrier gas molecules ================= */
+function vAdd(a,b){return [a[0]+b[0],a[1]+b[1],a[2]+b[2]];}function vSub(a,b){return [a[0]-b[0],a[1]-b[1],a[2]-b[2]];}function vSc(a,k){return [a[0]*k,a[1]*k,a[2]*k];}
+function vN(a){var l=Math.hypot(a[0],a[1],a[2])||1;return [a[0]/l,a[1]/l,a[2]/l];}function vX(a,b){return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function addH(atoms,c,nb,nH,len){
+  if(nb.length===2){var d1=vN(vSub(nb[0],c)),d2=vN(vSub(nb[1],c)),b=vN(vSc(vAdd(d1,d2),-1)),p=vN(vX(d1,d2)),a=0.9556;
+    for(var s2=0;s2<nH;s2++)atoms.push({e:'H',p:vAdd(c,vSc(vAdd(vSc(b,Math.cos(a)),vSc(p,(s2?-1:1)*Math.sin(a))),len))});}
+  else if(nb.length===1){var d=vN(vSub(nb[0],c)),u=vN(vX(d,Math.abs(d[2])<0.9?[0,0,1]:[1,0,0])),w=vX(d,u);
+    for(var k=0;k<nH;k++){var ph=k*2*Math.PI/3,dir=vAdd(vSc(d,-0.334),vSc(vAdd(vSc(u,Math.cos(ph)),vSc(w,Math.sin(ph))),0.943));atoms.push({e:'H',p:vAdd(c,vSc(dir,len))});}}
+}
+function buildMol(key,M){
+  var atoms=[],i;
+  function chain(types){var hv=[];for(i=0;i<types.length;i++){var p=[i*1.258,(i%2)*0.889,0];hv.push(p);atoms.push({e:types[i],p:p});}
+    for(i=0;i<types.length;i++){var nb=[];if(i>0)nb.push(hv[i-1]);if(i<types.length-1)nb.push(hv[i+1]);addH(atoms,hv[i],nb,(types[i]==='C'?4:2)-nb.length,types[i]==='O'?0.96:1.09);}}
+  if(key==='custom'){var n=clamp(Math.round((M-2)/14),1,34),t=[];for(i=0;i<n;i++)t.push('C');if(n===1)key='methane';else chain(t);}
+  if(key==='methane'){atoms.push({e:'C',p:[0,0,0]});[[1,1,1],[-1,-1,1],[-1,1,-1],[1,-1,-1]].forEach(function(d){atoms.push({e:'H',p:vSc(vN(d),1.09)});});}
+  else if(key==='ethanol')chain(['C','C','O']);
+  else if(key!=='custom'&&MOLS[key].r===0){var t2=[];for(i=0;i<MOLS[key].c;i++)t2.push('C');chain(t2);}
+  else if(key==='naphthalene'){var cs=[];[-1.212,1.212].forEach(function(cx0){for(var k=0;k<6;k++){var a=(30+60*k)*Math.PI/180,p=[cx0+1.40*Math.cos(a),1.40*Math.sin(a),0];if(!cs.some(function(q){return Math.hypot(q[0]-p[0],q[1]-p[1])<0.1;}))cs.push(p);}});
+    cs.forEach(function(p){atoms.push({e:'C',p:p});});cs.forEach(function(p){if(Math.abs(p[0])<0.05)return;var cx0=p[0]<0?-1.212:1.212;atoms.push({e:'H',p:vAdd(p,vSc(vN([p[0]-cx0,p[1],0]),1.09))});});}
+  else if(key!=='custom'){
+    for(var k=0;k<6;k++){var a=k*Math.PI/3,d=[Math.cos(a),Math.sin(a),0],p=vSc(d,1.39);atoms.push({e:'C',p:p});
+      if(k===0&&key==='phenol'){var o=vSc(d,2.75);atoms.push({e:'O',p:o});atoms.push({e:'H',p:vAdd(o,vSc(vN([0.33,0.94,0]),0.96))});}
+      else if(k===0&&key==='toluene'){var cmt=vSc(d,2.90);atoms.push({e:'C',p:cmt});addH(atoms,cmt,[p],3,1.09);}
+      else atoms.push({e:'H',p:vSc(d,2.48)});}
+  }
+  var mass={C:12,H:1,O:16},tot=0,c=[0,0,0];atoms.forEach(function(a){tot+=mass[a.e];c=vAdd(c,vSc(a.p,mass[a.e]));});c=vSc(c,1/tot);atoms.forEach(function(a){a.p=vSub(a.p,c);});
+  var bonds=[];for(var x=0;x<atoms.length;x++)for(var y=x+1;y<atoms.length;y++){var A=atoms[x].e,B=atoms[y].e;if(A==='H'&&B==='H')continue;var dd=Math.hypot.apply(null,vSub(atoms[x].p,atoms[y].p));if(dd<((A==='H'||B==='H')?1.2:1.65))bonds.push([x,y]);}
+  var ext=0;atoms.forEach(function(a){ext=Math.max(ext,Math.hypot(a.p[0],a.p[1],a.p[2])+1.7);});
+  return {atoms:atoms,bonds:bonds,ext:ext};
+}
+var GASVIS={He:{r:1.3,two:false,sub:1.25,sep:0},H2:{r:1.45,two:true,sub:1.1,sep:0.37},N2:{r:1.82,two:true,sub:1.5,sep:0.55}};
+var VDW={C:1.7,H:1.2,O:1.52},ARAD={C:0.42,H:0.27,O:0.44},NG=40,NGH=40,PERIOD=10,MV=null,mcam={yaw:0.55,pitch:0.32},SPRITE=null;
+function sprite(){if(SPRITE)return SPRITE;var tc=document.createElement('canvas');tc.width=tc.height=64;var tg=tc.getContext('2d'),gr=tg.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.5,'rgba(255,255,255,0.9)');gr.addColorStop(1,'rgba(255,255,255,0)');tg.fillStyle=gr;tg.fillRect(0,0,64,64);SPRITE=new THREE.CanvasTexture(tc);return SPRITE;}
+function initMol(){
+  if(MV||MV===false)return;
+  var cv=$('cmol');if(!window.THREE){MV=false;cv.style.display='none';return;}
+  var R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});}catch(e){MV=false;cv.style.display='none';return;}
+  R.setPixelRatio(Math.min(2,window.devicePixelRatio||1));R.setScissorTest(true);
+  MV={R:R,panels:[mkPanel(),mkPanel()],lab:0};
+  var drag=null;
+  cv.addEventListener('pointerdown',function(e){drag={x:e.clientX,y:e.clientY,t:e.pointerType};cv.setPointerCapture(e.pointerId);});
+  cv.addEventListener('pointermove',function(e){if(!drag)return;mcam.yaw-=(e.clientX-drag.x)*0.008;if(drag.t!=='touch')mcam.pitch=clamp(mcam.pitch+(e.clientY-drag.y)*0.006,-1.3,1.3);drag.x=e.clientX;drag.y=e.clientY;if(!running)drawMol();});
+  cv.addEventListener('pointerup',function(){drag=null;});cv.addEventListener('pointercancel',function(){drag=null;});
+  cv.addEventListener('keydown',function(e){var h=true;if(e.key==='ArrowLeft')mcam.yaw+=0.1;else if(e.key==='ArrowRight')mcam.yaw-=0.1;else if(e.key==='ArrowUp')mcam.pitch=clamp(mcam.pitch+0.08,-1.3,1.3);else if(e.key==='ArrowDown')mcam.pitch=clamp(mcam.pitch-0.08,-1.3,1.3);else h=false;if(h){e.preventDefault();if(!running)drawMol();}});
+}
+function mkPanel(){
+  var sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x556677,0.9));var dl=new THREE.DirectionalLight(0xffffff,0.7);dl.position.set(5,10,8);sc.add(dl);
+  var molG=new THREE.Group();sc.add(molG);
+  var gas=new THREE.InstancedMesh(new THREE.SphereGeometry(1,14,10),new THREE.MeshStandardMaterial({color:0x9ad7d0,roughness:0.45,transparent:true,opacity:0.5,depthWrite:false}),NG*2);sc.add(gas);
+  var gp=new THREE.BufferGeometry();gp.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NGH*3),3));
+  var ghosts=new THREE.Points(gp,new THREE.PointsMaterial({size:0.9,map:sprite(),transparent:true,depthWrite:false,opacity:0.55}));sc.add(ghosts);
+  var shell=new THREE.Mesh(new THREE.SphereGeometry(1,28,18),new THREE.MeshBasicMaterial({wireframe:true,transparent:true,opacity:0.18}));sc.add(shell);
+  var start=new THREE.Mesh(new THREE.SphereGeometry(0.3,10,8),new THREE.MeshBasicMaterial({color:0x888888}));sc.add(start);
+  var tg=new THREE.BufferGeometry();tg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(600*3),3));tg.setDrawRange(0,0);
+  var trail=new THREE.Line(tg,new THREE.LineBasicMaterial({transparent:true,opacity:0.8}));sc.add(trail);
+  return {sc:sc,cam:new THREE.PerspectiveCamera(36,1,0.5,800),molG:molG,gas:gas,ghosts:ghosts,shell:shell,trail:trail,key:null,D:1,on:false};
+}
+function setupPanel(pn,key,M,gk,DM,colCss){
+  var dark=window.matchMedia('(prefers-color-scheme: dark)').matches,sig2=key+'|'+(key==='custom'?Math.round(M):'')+'|'+dark;
+  if(pn.sig!==sig2){
+    pn.sig=sig2;disposeGroup(pn.molG);pn.geo=buildMol(key,M);
+    var g=pn.geo,sg=new THREE.SphereGeometry(1,16,12),cols={C:dark?0x9aa6b4:0x4f5966,H:0xf1f3f6,O:0xe0533f};
+    g.atoms.forEach(function(a){var m=new THREE.Mesh(sg,new THREE.MeshStandardMaterial({color:cols[a.e],roughness:0.4}));m.scale.setScalar(ARAD[a.e]);m.position.set(a.p[0],a.p[1],a.p[2]);pn.molG.add(m);
+      var v=new THREE.Mesh(sg,new THREE.MeshStandardMaterial({color:dark?0x9fb0c0:0x8899aa,transparent:true,opacity:0.13,depthWrite:false}));v.scale.setScalar(VDW[a.e]);v.position.copy(m.position);pn.molG.add(v);});
+    var cg=new THREE.CylinderGeometry(0.11,0.11,1,8),bm=new THREE.MeshStandardMaterial({color:dark?0xb8c2cc:0x7c8794,roughness:0.5});
+    g.bonds.forEach(function(b){var p1=new THREE.Vector3().fromArray(g.atoms[b[0]].p),p2=new THREE.Vector3().fromArray(g.atoms[b[1]].p),mid=p1.clone().add(p2).multiplyScalar(0.5),dir=p2.clone().sub(p1);
+      var c=new THREE.Mesh(cg,bm);c.scale.set(1,dir.length(),1);c.position.copy(mid);c.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());pn.molG.add(c);});
+  }
+  var col=new THREE.Color(hexOf(colCss));
+  pn.ghosts.material.color=col;pn.shell.material.color=col;pn.trail.material.color=col;
+  pn.gas.material.color.set(gk==='He'?(dark?0x7fd1c6:0x8fd3ca):(gk==='H2'?(dark?0xc9d4e8:0xb9c6dc):(dark?0x8aa8f0:0x6c8fd8)));
+  pn.gk=gk;pn.D=clamp(1.6*DM/REF.gcc.DM,0.03,40);pn.on=true;pn.hb=Math.max(11,pn.geo.ext+6);
+  if(pn.gkPrev!==gk||!pn.g){pn.gkPrev=gk;resetPanel(pn);}
+}
+function gasVel(gk){var sd=9*Math.sqrt((VALS[type].T+273.15)/298)*Math.sqrt(4/GASES[gk].M)/Math.sqrt(3);return [gauss()*sd,gauss()*sd,gauss()*sd];}
+function resetPanel(pn){
+  pn.t=0;pn.p=[0,0,0];pn.v=[0,0,0];pn.q=new THREE.Quaternion();pn.w=[0,0,0];pn.gh=[];pn.tn=0;pn.tt=0;
+  for(var i=0;i<NGH;i++)pn.gh.push({p:[0,0,0],v:[0,0,0]});
+  pn.g=[];var gv=GASVIS[pn.gk];
+  for(var j=0;j<NG;j++){var p,ok=false,tries=0;while(!ok&&tries<40){tries++;p=[(Math.random()*2-1)*pn.hb,(Math.random()*2-1)*pn.hb,(Math.random()*2-1)*pn.hb];ok=pn.geo.atoms.every(function(a){return Math.hypot(p[0]-a.p[0],p[1]-a.p[1],p[2]-a.p[2])>VDW[a.e]+gv.r;});}
+    pn.g.push({p:p,v:gasVel(pn.gk),ax:vN([gauss(),gauss(),gauss()])});}
+}
+function ou(o,D,dt,tau){var k=Math.sqrt(2*D*dt)/tau;for(var a=0;a<3;a++){o.v[a]+=-o.v[a]/tau*dt+k*gauss();o.p[a]+=o.v[a]*dt;}}
+var _q=null,_v=null;
+function stepPanel(pn,dt){
+  if(!pn.on)return;var tau=0.3,i;
+  ou(pn,pn.D,dt,tau);for(i=0;i<NGH;i++)ou(pn.gh[i],pn.D,dt,tau);
+  var Dr=pn.D*6/(pn.geo.ext*pn.geo.ext+6),kr=Math.sqrt(2*Dr*dt)/0.3;for(i=0;i<3;i++)pn.w[i]+=-pn.w[i]/0.3*dt+kr*gauss();
+  if(!_q){_q=new THREE.Quaternion();_v=new THREE.Vector3();}
+  var wl=Math.hypot(pn.w[0],pn.w[1],pn.w[2]);if(wl>1e-9){_v.set(pn.w[0]/wl,pn.w[1]/wl,pn.w[2]/wl);_q.setFromAxisAngle(_v,wl*dt);pn.q.premultiply(_q);}
+  var aw=pn.geo.atoms.map(function(a){_v.set(a.p[0],a.p[1],a.p[2]).applyQuaternion(pn.q);return [_v.x+pn.p[0],_v.y+pn.p[1],_v.z+pn.p[2],VDW[a.e]];});
+  var gv=GASVIS[pn.gk],hb=pn.hb;
+  pn.g.forEach(function(g){
+    for(var a=0;a<3;a++)g.p[a]+=g.v[a]*dt;
+    for(var j=0;j<aw.length;j++){var A=aw[j],dx=g.p[0]-A[0],dy=g.p[1]-A[1],dz=g.p[2]-A[2],R=A[3]+gv.r,d2=dx*dx+dy*dy+dz*dz;
+      if(d2<R*R){var d=Math.sqrt(d2)||0.01,nx=dx/d,ny=dy/d,nz=dz/d,vn=g.v[0]*nx+g.v[1]*ny+g.v[2]*nz;if(vn<0){g.v[0]-=2*vn*nx;g.v[1]-=2*vn*ny;g.v[2]-=2*vn*nz;}g.p=[A[0]+nx*(R+0.02),A[1]+ny*(R+0.02),A[2]+nz*(R+0.02)];}}
+    for(a=0;a<3;a++){var rel=g.p[a]-pn.p[a];if(rel>hb){g.p[a]-=2*hb;g.v=gasVel(pn.gk);}else if(rel<-hb){g.p[a]+=2*hb;g.v=gasVel(pn.gk);}}
+  });
+  pn.t+=dt;pn.tt+=dt;
+  if(pn.tt>0.05){pn.tt=0;var arr=pn.trail.geometry.attributes.position.array;if(pn.tn<600){arr[pn.tn*3]=pn.p[0];arr[pn.tn*3+1]=pn.p[1];arr[pn.tn*3+2]=pn.p[2];pn.tn++;pn.trail.geometry.setDrawRange(0,pn.tn);pn.trail.geometry.attributes.position.needsUpdate=true;}}
+  if(pn.t>PERIOD)resetPanel(pn);
+}
+function rmsOf(pn){var s2=0;pn.gh.forEach(function(g){s2+=g.p[0]*g.p[0]+g.p[1]*g.p[1]+g.p[2]*g.p[2];});return Math.sqrt(s2/pn.gh.length);}
+function drawPanel(pn,x,y,w,h,frameR){
+  var R=MV.R;pn.molG.position.set(pn.p[0],pn.p[1],pn.p[2]);pn.molG.quaternion.copy(pn.q);
+  var gv=GASVIS[pn.gk],m4=new THREE.Matrix4(),n=0;
+  pn.g.forEach(function(g){if(gv.two){[1,-1].forEach(function(sg){m4.makeScale(gv.sub,gv.sub,gv.sub);m4.setPosition(g.p[0]+g.ax[0]*gv.sep*sg,g.p[1]+g.ax[1]*gv.sep*sg,g.p[2]+g.ax[2]*gv.sep*sg);pn.gas.setMatrixAt(n++,m4);});}
+    else{m4.makeScale(gv.sub,gv.sub,gv.sub);m4.setPosition(g.p[0],g.p[1],g.p[2]);pn.gas.setMatrixAt(n++,m4);}});
+  pn.gas.count=n;pn.gas.instanceMatrix.needsUpdate=true;
+  var ga=pn.ghosts.geometry.attributes.position.array;pn.gh.forEach(function(g,i){ga[i*3]=g.p[0];ga[i*3+1]=g.p[1];ga[i*3+2]=g.p[2];});pn.ghosts.geometry.attributes.position.needsUpdate=true;
+  var rr=rmsOf(pn);pn.shell.visible=rr>0.4;pn.shell.scale.setScalar(Math.max(rr,0.01));
+  var c=pn.cam;c.aspect=w/h;var fov=c.fov*Math.PI/360,d=frameR/Math.tan(fov)*(c.aspect<1?1/c.aspect:1)*1.05;
+  c.position.set(d*Math.cos(mcam.pitch)*Math.sin(mcam.yaw),d*Math.sin(mcam.pitch),d*Math.cos(mcam.pitch)*Math.cos(mcam.yaw));c.lookAt(0,0,0);c.updateProjectionMatrix();
+  R.setViewport(x,y,w,h);R.setScissor(x,y,w,h);R.render(pn.sc,c);
+}
+var MOLSZ={w:0,h:0};
+function molResize(){if(!MV)return;var cv=$('cmol'),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;MOLSZ.w=w;MOLSZ.h=h;MV.R.setSize(w,h,false);}
+function molRefresh(){
+  var TT=TYPES[type],liquid=TT.liquid;
+  $('molinfo').hidden=!liquid;$('cmol').style.visibility=liquid?'hidden':'visible';$('molnote').hidden=liquid;$('ml1').hidden=liquid;$('ml2').hidden=liquid||!P2;
+  document.querySelector('#v-mol .ovl.br').style.visibility=liquid?'hidden':'visible';
+  if(!MV||liquid||!P)return;
+  var v=VALS[type];setupPanel(MV.panels[0],v.mol,v.M,v.mobile,P.DM,pal.mob);
+  if(P2)setupPanel(MV.panels[1],v.cmpMol,v.M,v.cmpMobile,P2.DM,pal.cmp);else MV.panels[1].on=false;
+}
+function stepMol(dt){if(!MV||TYPES[type].liquid)return;MV.panels.forEach(function(pn){stepPanel(pn,dt);});}
+function drawMol(){
+  if(!MV||TYPES[type].liquid||!MOLSZ.w)return;
+  var W=MOLSZ.w,H=MOLSZ.h,two=!!P2&&MV.panels[1].on,p0=MV.panels[0],p1=MV.panels[1];
+  var Dm=Math.max(p0.D,two?p1.D:0),frameR=Math.max(p0.geo.ext+3,two?p1.geo.ext+3:0,1.25*Math.sqrt(6*Dm*PERIOD));
+  MV.R.setScissor(0,0,W,H);MV.R.setViewport(0,0,W,H);MV.R.clear();
+  var side=W/H>=1.15,l1=$('ml1'),l2=$('ml2');
+  if(!two){drawPanel(p0,0,0,W,H,frameR);l1.style.left='8px';l1.style.top='6px';}
+  else if(side){drawPanel(p0,0,0,W/2,H,frameR);drawPanel(p1,W/2,0,W/2,H,frameR);l1.style.left='8px';l1.style.top='6px';l2.style.left=(W/2+8)+'px';l2.style.top='6px';}
+  else{drawPanel(p0,0,H/2,W,H/2,frameR);drawPanel(p1,0,0,W,H/2,frameR);l1.style.left='8px';l1.style.top='6px';l2.style.left='8px';l2.style.top=(H/2+6)+'px';}
+  MV.lab=(MV.lab||0)+1;
+  if(MV.lab%6===1){
+    var v=VALS[type];
+    l1.innerHTML='<b style="color:var(--mob)">'+label1()+'</b><br>D<sub>M</sub> '+sci(P.DM*1e4,2)+' cm²/s<br>spread '+rmsOf(p0).toFixed(1)+' Å after '+p0.t.toFixed(1)+' s';
+    if(two)l2.innerHTML='<b style="color:var(--cmp)">'+label2()+'</b><br>D<sub>M</sub> '+sci(P2.DM*1e4,2)+' cm²/s<br>spread '+rmsOf(p1).toFixed(1)+' Å after '+p1.t.toFixed(1)+' s';
+    l2.hidden=!two;
+  }
+}
+$('molRestart').addEventListener('click',function(){if(!MV)return;MV.panels.forEach(function(pn){if(pn.on)resetPanel(pn);});if(!running)drawMol();});
+
 /* ================= views and main loop ================= */
 var view='graph';
 function setView(v){
   view=v;document.querySelectorAll('.seg [data-view]').forEach(function(b){b.setAttribute('aria-selected',b.getAttribute('data-view')===v?'true':'false');});
-  ['graph','col','zoom','nums'].forEach(function(n){$('v-'+n).classList.toggle('on',n===v);});
+  ['graph','col','mol','zoom','nums'].forEach(function(n){$('v-'+n).classList.toggle('on',n===v);});
+  if(v==='mol'){initMol();molResize();molRefresh();drawMol();}
   if(v==='graph')drawPlot();
   if(v==='col'){init3D();resize3D();render3D(0,true);}
   if(v==='zoom'){if(sizeMicro()){MICRO[mode].init();drawMicro();}capText();}
@@ -619,11 +838,12 @@ function setView(v){
 }
 document.querySelectorAll('.seg [data-view]').forEach(function(b){b.addEventListener('click',function(){setView(b.getAttribute('data-view'));});});
 function update(rebuild){
-  P=physics(type,VALS[type]);
+  P=physics(type,VALS[type]);P2=VALS[type].cmpOn?physics(type,cmpVals()):null;setLegend();
   updateLive();updateDM();drawPlot();updateNums();
   if(view==='col'&&rebuild)buildColumn();else if(rebuild&&V3)V3.dirty=true;
   if(view==='zoom'){if(rebuild&&mode==='A')MICRO.A.init();capText();}
-  if(!running){if(view==='col')render3D(0,true);if(view==='zoom')drawMicro();}
+  if(MV&&!TYPES[type].liquid){molRefresh();}else if(view==='mol')molRefresh();
+  if(!running){if(view==='col')render3D(0,true);if(view==='zoom')drawMicro();if(view==='mol')drawMol();}
 }
 var running=!window.matchMedia('(prefers-reduced-motion: reduce)').matches,last=0;
 function loop(ts){
@@ -632,6 +852,7 @@ function loop(ts){
   if(!document.hidden){
     if(view==='col'&&V3){if(V3.dirty){V3.dirty=false;buildColumn();}render3D(dt,false);}
     if(view==='zoom'){MICRO[mode].step(dt);drawMicro();}
+    if(view==='mol'){stepMol(dt);drawMol();}
   }
   requestAnimationFrame(loop);
 }
@@ -641,8 +862,8 @@ $('type').addEventListener('change',function(){type=this.value;if(pgroup==='A'&&
 var guide=$('guide');$('guideBtn').addEventListener('click',function(){if(guide.showModal)guide.showModal();else guide.setAttribute('open','');});
 $('guideClose').addEventListener('click',function(){if(guide.close)guide.close();else guide.removeAttribute('open');});
 guide.addEventListener('click',function(e){if(e.target===guide&&guide.close)guide.close();});
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){readPal();if(V3)buildColumn();drawPlot();if(view==='zoom')drawMicro();});
-var ro=new ResizeObserver(function(){if(view==='graph')drawPlot();if(view==='col'){resize3D();if(!running)render3D(0,true);}if(view==='zoom'){if(sizeMicro()){MICRO[mode].init();drawMicro();}}});
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){readPal();if(MV)MV.panels.forEach(function(pn){pn.sig=null;});molRefresh();if(V3)buildColumn();drawPlot();if(view==='zoom')drawMicro();});
+var ro=new ResizeObserver(function(){if(view==='graph')drawPlot();if(view==='col'){resize3D();if(!running)render3D(0,true);}if(view==='zoom'){if(sizeMicro()){MICRO[mode].init();drawMicro();}}if(view==='mol'){molResize();drawMol();}});
 ro.observe($('stage'));
 buildPanel();update(false);setView('graph');$('mname').textContent='Multiple paths';
 if(running)requestAnimationFrame(loop);else setPlay(false);
