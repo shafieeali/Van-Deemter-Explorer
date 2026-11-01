@@ -281,18 +281,18 @@ var SPEC=[
   {id:'L',grp:'flow',label:'Column length, L',unit:function(t){return t.lenUnit;},r:{hplc:[30,250,5,150],gcp:[0.5,6,0.1,2],gcc:[5,100,1,30]}},
   {id:'id',grp:'flow',label:'Inner diameter',unit:'mm',r:{gcc:[0.10,0.53,0.01,0.25]}},
   {id:'dp',grp:'A',label:'Particle diameter, d<sub>p</sub>',unit:'µm',r:{hplc:[1.7,10,0.1,5],gcp:[80,300,5,150]}},
-  {id:'lam',grp:'A',label:'Packing irregularity, λ',unit:'',r:{hplc:[0.3,2,0.05,0.5],gcp:[0.3,2,0.05,0.75]}},
+  {id:'lam',grp:'A',label:'Packing irregularity, λ',unit:'',r:{hplc:[0.3,2,0.05,0.75],gcp:[0.3,2,0.05,0.75]}},
   {id:'M',grp:'B',label:'Analyte molar mass',unit:'g/mol',log:true,r:{hplc:[50,2000,0,200],gcp:[16,500,0,114],gcc:[16,500,0,114]}},
   {id:'T',grp:'B',label:'Column temperature',unit:'°C',r:{hplc:[20,80,1,30],gcp:[50,300,5,150],gcc:[50,300,5,150]}},
   {id:'P',grp:'B',label:'Average column pressure',unit:'atm',r:{gcp:[1,5,0.1,2],gcc:[1,5,0.1,2]}},
   {id:'gam',grp:'B',label:'Obstruction factor, γ',unit:'',r:{hplc:[0.5,1,0.05,0.7],gcp:[0.5,1,0.05,0.7]}},
-  {id:'k',grp:'C',label:'Retention factor, k',unit:'',log:true,r:{hplc:[0.2,20,0,3],gcp:[0.2,20,0,5],gcc:[0.2,20,0,5]}},
+  {id:'k',grp:'C',label:'Retention factor, k (at 0.25 mm, 0.25 µm for capillaries)',unit:'',log:true,r:{hplc:[0.2,20,0,3],gcp:[0.2,20,0,5],gcc:[0.2,20,0,5]}},
   {id:'df',grp:'C',label:'Stationary phase thickness, d<sub>f</sub>',unit:'µm',log:true,r:{hplc:[0.001,0.5,0,0.003],gcp:[0.2,10,0,1],gcc:[0.1,5,0,0.25]}},
   {id:'DS',grp:'C',label:'Diffusion in stationary phase, D<sub>S</sub>',unit:'cm²/s',log:true,sci:true,r:{hplc:[1e-7,1e-5,0,1e-6],gcp:[1e-7,1e-5,0,1e-6],gcc:[1e-7,1e-5,0,1e-6]}}
 ];
 function specOf(id){for(var i=0;i<SPEC.length;i++)if(SPEC[i].id===id)return SPEC[i];}
 var VALS={},DEF={};
-function defaults(t){var o={mobile:TYPES[t].mobDef,mol:TYPES[t].liquid?'naphthalene':'octane',cmpOn:false,cmpMol:'eicosane',cmpMobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])o[s.id]=s.r[t][3];});return o;}
+function defaults(t){var o={link:true,mobile:TYPES[t].mobDef,mol:TYPES[t].liquid?'naphthalene':'octane',cmpOn:false,cmpMol:'eicosane',cmpMobile:TYPES[t].mobDef};SPEC.forEach(function(s){if(s.r[t])o[s.id]=s.r[t][3];});return o;}
 Object.keys(TYPES).forEach(function(t){VALS[t]=defaults(t);});
 var type='hplc';
 function physics(t,v){
@@ -300,14 +300,15 @@ function physics(t,v){
   var mo=(v.mol&&v.mol!=='custom')?MOLS[v.mol]:null,Mw=mo?mo.M:v.M;
   if(TT.liquid){var s=SOLV[v.mobile];eta=s.eta*Math.exp(s.B*(1/T-1/298.15));DM=7.4e-8*Math.sqrt(s.phi*s.Ms)*T/(eta*Math.pow(mo?mo.lebas:1.2*v.M,0.6))*1e-4;}
   else{var g=GASES[v.mobile];DM=1e-3*Math.pow(T,1.75)*Math.sqrt(1/Mw+1/g.M)/(v.P*Math.pow(Math.cbrt(mo?mo.fuller:1.46*v.M)+Math.cbrt(g.V),2))*1e-4;}
-  var k=v.k,fk=(1+6*k+11*k*k)/(24*(1+k)*(1+k));
+  var beta=null,k=v.k;if(!TT.packed){beta=(v.id*1e-3/2)/(2*v.df*1e-6);if(v.link)k=v.k*250/beta;}
+  var fk=(1+6*k+11*k*k)/(24*(1+k)*(1+k));
   var dp=TT.packed?v.dp*1e-6:0,r=TT.packed?0:v.id*1e-3/2,gam=TT.packed?v.gam:1;
   var A=TT.packed?2*v.lam*dp:0,B=2*gam*DM;
   var CS=(2/3)*k/((1+k)*(1+k))*Math.pow(v.df*1e-6,2)/(v.DS*1e-4);
   var CM=TT.packed?0.25*fk*dp*dp/DM:fk*r*r/DM;
   var C=CS+CM,uopt=Math.sqrt(B/C),Hmin=A+2*Math.sqrt(B*C);
   var u=v.u*TT.uScale,H=A+B/u+C*u,L=v.L*TT.lenScale,N=L/H,tM=L/u,tR=tM*(1+k);
-  return {DM:DM,eta:eta,A:A,B:B,CS:CS,CM:CM,C:C,uopt:uopt,Hmin:Hmin,u:u,H:H,HA:A,HB:B/u,HCS:CS*u,HCM:CM*u,L:L,N:N,Nopt:L/Hmin,tM:tM,tR:tR,w:4*tR/Math.sqrt(N),k:k,dp:dp,r:r,gam:gam};
+  return {beta:beta,DM:DM,eta:eta,A:A,B:B,CS:CS,CM:CM,C:C,uopt:uopt,Hmin:Hmin,u:u,H:H,HA:A,HB:B/u,HCS:CS*u,HCM:CM*u,L:L,N:N,Nopt:L/Hmin,tM:tM,tR:tR,w:4*tR/Math.sqrt(N),k:k,dp:dp,r:r,gam:gam};
 }
 var REF={};Object.keys(TYPES).forEach(function(t){var p=physics(t,defaults(t));REF[t]={H:p.Hmin,HB:p.B/p.uopt,C:p.C,DM:p.DM};});
 function cmpVals(){var v=VALS[type],o={};for(var k in v)o[k]=v[k];o.mol=v.cmpMol;o.mobile=v.cmpMobile;return o;}
@@ -397,6 +398,10 @@ function renderGroup(g,box){
     box.appendChild(row);show();
   });
   if(g==='B'&&!TT.packed){var g2=document.createElement('p');g2.className='info';g2.innerHTML='In an open tube nothing blocks diffusion, so γ = 1.';box.appendChild(g2);}
+  if(g==='C'&&!TT.packed){var lr=document.createElement('div');lr.className='row';lr.innerHTML='<div class="top"><span>When the film or diameter changes</span></div>';var lc=document.createElement('div');lc.className='chips';
+    [[true,'k follows the phase ratio'],[false,'keep k fixed']].forEach(function(o){var b=document.createElement('button');b.type='button';b.textContent=o[1];b.setAttribute('aria-pressed',VALS[type].link===o[0]?'true':'false');
+      b.addEventListener('click',function(){VALS[type].link=o[0];lc.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});update(true);});lc.appendChild(b);});
+    lr.appendChild(lc);var le=document.createElement('div');le.className='eq';le.setAttribute('data-eq','beta');lr.appendChild(le);box.appendChild(lr);}
   var h=document.createElement('p');h.className='hint';h.innerHTML=HINTS[g](TT);if(h.innerHTML)box.appendChild(h);
 }
 function buildPanel(){
@@ -431,6 +436,7 @@ function eqFor(id){
     case 'lam':return 'A = 2'+R_('λ')+'d<sub>p</sub><br>'+N_('= 2 × '+v.lam.toFixed(2)+' × '+sig(v.dp,3)+' µm = '+fmtH(P.A));
     case 'gam':return 'B = 2'+R_('γ')+'D<sub>M</sub><br>'+N_('= 2 × '+v.gam.toFixed(2)+' × '+sci(P.DM*1e4,2)+' cm²/s = '+sci(P.B*1e4,2)+' cm²/s → B/u = '+fmtH(P.HB));
     case 'M':case 'T':case 'P':case 'mol':case 'mob':return dmLine+'<br>'+dmNum;
+    case 'beta':return 'β = r/(2'+R_('d<sub>f</sub>')+'), &nbsp; k = K/β'+'<br>'+N_('β = '+Math.round(P.beta)+(VALS[type].link?'; k = '+sig(P.k,3)+' (the k slider sets k for a 0.25 mm × 0.25 µm column)':'; k held at '+sig(P.k,3)));
     case 'k':return 'C<sub>S</sub> = (2/3)·'+R_('k')+'/(1 + '+R_('k')+')<sup>2</sup>·d<sub>f</sub><sup>2</sup>/D<sub>S</sub> &nbsp; t<sub>R</sub> = t<sub>M</sub>(1 + '+R_('k')+')<br>'+N_('k/(1+k)² = '+(P.k/((1+P.k)*(1+P.k))).toFixed(3)+'; C<sub>S</sub>·u = '+fmtH(P.HCS)+'; t<sub>R</sub> = '+fmtTime(P.tR));
     case 'df':return 'C<sub>S</sub> = (2/3)·k/(1 + k)<sup>2</sup>·'+R_('d<sub>f</sub>')+'<sup>2</sup>/D<sub>S</sub><br>'+N_('= '+((2/3)*P.k/((1+P.k)*(1+P.k))).toFixed(3)+' × ('+sig(v.df,2)+' µm)² / D<sub>S</sub> = '+sci(P.CS,2)+' s → C<sub>S</sub>·u = '+fmtH(P.HCS));
     case 'DS':return 'C<sub>S</sub> = (2/3)·k/(1 + k)<sup>2</sup>·d<sub>f</sub><sup>2</sup>/'+R_('D<sub>S</sub>')+'<br>'+N_('= … / '+sci(v.DS,1)+' cm²/s = '+sci(P.CS,2)+' s → C<sub>S</sub>·u = '+fmtH(P.HCS));
